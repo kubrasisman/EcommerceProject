@@ -20,6 +20,7 @@
         <module>eureka-service</module>
         <module>product-service</module>
         <module>order-service</module>
+        <module>media-service</module>
     </modules>
 
     <properties>
