@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="aaecf699-5bd5-4bca-b2c8-46a6df1fc2ca" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/product-service/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/product-service/pom.xml" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/product-service" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;kubrasisman&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/kubrasisman/Ecommerce.git&quot;,
+    &quot;accountId&quot;: &quot;5013e843-e89b-4421-a493-2aed1d83bb20&quot;
+  }
+}</component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 2
+}</component>
+  <component name="ProjectId" id="344Ir0s4SFrFGR5UiOuj9GRKJpv" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Maven.eureka-server [clean,install].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.eureka-server [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.eureka-server [install].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.eureka-service [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.microservice [clean,install,-N].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.microservice [clean,install].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.microservice [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.microservice [install].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.product-service [clean,install].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/kubrasisman/Desktop/EcommerceProject/microservice&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;
+  }
+}</component>
+  <component name="RunAnythingCache">
+    <option name="myCommands">
+      <command value="mvn clean" />
+      <command value="mvn install" />
+      <command value="mvn clean install -N" />
+      <command value="mvn clean install" />
+    </option>
+  </component>
+  <component name="RunManager">
+    <configuration name="Unnamed" type="Application" factoryName="Application" nameIsGenerated="true">
+      <module name="product-service" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/product-service" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="JetRunConfigurationType">
+      <module name="microservice" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration default="true" type="KotlinStandaloneScriptRunConfigurationType">
+      <module name="microservice" />
+      <option name="filePath" />
+      <method v="2" />
+    </configuration>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="aaecf699-5bd5-4bca-b2c8-46a6df1fc2ca" name="Changes" comment="" />
+      <created>1760466612029</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1760466612029</updated>
+    </task>
+    <servers />
+  </component>
+</project>
