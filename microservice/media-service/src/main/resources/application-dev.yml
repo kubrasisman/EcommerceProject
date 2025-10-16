@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: media-service
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 2MB
+
+server:
+  port: 8055
+
+eureka:
+  instance:
+    prefer-ip-address: true
+  client:
+    serviceUrl:
+      defaultZone: http://eureka-server:8761/eureka/
+
+info:
+  root-dir: /media
+
+default:
+  media:
+    url:
+      format: /media{0}
