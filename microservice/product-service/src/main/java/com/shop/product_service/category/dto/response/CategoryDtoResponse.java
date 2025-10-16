@@ -1,11 +1,11 @@
-package com.shop.product_service.category.dto;
+package com.shop.product_service.category.dto.response;
 
 import lombok.Data;
 
 import java.util.Set;
 
 @Data
-public class CategoryData {
+public class CategoryDtoResponse {
     private Long id;
     private Long code;
     private String name;

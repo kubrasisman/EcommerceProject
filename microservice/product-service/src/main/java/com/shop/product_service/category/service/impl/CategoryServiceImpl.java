@@ -1,6 +1,7 @@
 package com.shop.product_service.category.service.impl;
 
-import com.shop.product_service.category.dto.CategoryData;
+import com.shop.product_service.category.dto.CategoryDto;
+import com.shop.product_service.category.dto.response.CategoryDtoResponse;
 import com.shop.product_service.category.model.CategoryModel;
 import com.shop.product_service.category.populator.CategoryPopulator;
 import com.shop.product_service.category.repository.CategoryRepository;
@@ -8,105 +9,170 @@ import com.shop.product_service.category.service.CategoryService;
 import com.shop.product_service.product.model.ProductModel;
 import com.shop.product_service.product.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @RequiredArgsConstructor
+@Service
+@Slf4j
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryPopulator categoryMapper;
     private final ProductRepository productRepository;
 
     @Override
-    public List<CategoryData> getAllCategories() {
-        return categoryRepository.findAll()
-                .stream()
-                .map(categoryMapper::toData)
-                .collect(Collectors.toList());
+    public List<CategoryDtoResponse> getAllCategories() {
+        try {
+            List<CategoryModel> categories = categoryRepository.findAll();
+            if (CollectionUtils.isEmpty(categories)) {
+                return Collections.emptyList();
+            }
+            return categories.stream()
+                    .map(categoryMapper::toDtoResponse)
+                    .collect(Collectors.toList());
+        } catch (Exception ex) {
+            log.error("Failed to fetch all categories", ex);
+            throw new RuntimeException("Could not fetch categories", ex);
+        }
     }
 
     @Override
-    public CategoryData getCategoryByCode(Long code) {
-        CategoryModel category = categoryRepository.findByCode(code)
-                .orElseThrow(() -> new RuntimeException("Category not found with code: " + code));
-        return categoryMapper.toData(category);
+    public CategoryDtoResponse getCategoryByCode(Long code) {
+        try {
+            CategoryModel category = categoryRepository.findByCode(code)
+                    .orElseThrow(() -> {
+                        log.warn("Category not found with code: {}", code);
+                        return new RuntimeException("Category not found with code: " + code);
+                    });
+            return categoryMapper.toDtoResponse(category);
+        } catch (Exception ex) {
+            log.error("Error while getting category by code: {}", code, ex);
+            throw new RuntimeException("Error while getting category", ex);
+        }
     }
 
     @Override
-    public CategoryData createCategory(CategoryData categoryData) {
-        CategoryModel category = categoryMapper.toModel(categoryData);
-        if (categoryData.getProductCodes() != null && !categoryData.getProductCodes().isEmpty()) {
-            Set<ProductModel> products = new HashSet<>();
-            categoryData.getProductCodes().forEach(p -> {
-                Optional<ProductModel> productModel = productRepository.findByCode(p);
-                if (productModel.isPresent()) {
-                    products.add(productModel.get());
-                }
-            });
-            category.setProducts(products);
+    @Transactional
+    public CategoryDtoResponse createCategory(CategoryDto categoryDto) {
+        if (categoryDto == null) {
+            log.warn("createCategory called with null categoryDto");
+            throw new IllegalArgumentException("Category data must not be null");
         }
-        categoryRepository.save(category);
-        return categoryMapper.toData(category);
-    }
+        try {
+            Long code = categoryDto.getCode();
+            if (code != null && categoryRepository.existsByCode(code)) {
+                log.warn("Category with code {} already exists", code);
+                return categoryMapper.toDtoResponse(categoryRepository.findByCode(code).get());
+            }
 
-    @Override
-    public CategoryData updateCategory(Long code, CategoryData categoryData) {
-        Optional<CategoryModel> optional = categoryRepository.findByCode(code);
-        if (optional.isEmpty()) {
-            throw new RuntimeException("Category not found with code: " + code);
-        }
-
-        CategoryModel category = optional.get();
-        category.setName(categoryData.getName());
-        category.setDescription(categoryData.getDescription());
-        category.setCode(categoryData.getCode());
-
-        if (categoryData.getProductCodes() != null) {
-            Set<ProductModel> products = new HashSet<>();
-            categoryData.getProductCodes().forEach(p -> {
-                Optional<ProductModel> productModel = productRepository.findByCode(p);
-                if (productModel.isPresent()) {
-                    products.add(productModel.get());
-                }
-            });
-            category.setProducts(products);
-        }
-
-        if (categoryData.getProductCodes() != null) {
-            Set<Long> allProductCodes = categoryData.getProductCodes();
-            Set<Long> existingCodes = category.getProducts().stream().map(ProductModel::getCode).collect(Collectors.toSet());
-            Set<Long> toAdd = allProductCodes.stream().filter(codeVal -> !existingCodes.contains(codeVal)).collect(Collectors.toSet());
-            Set<Long> toRemove = existingCodes.stream().filter(codeVal -> !allProductCodes.contains(codeVal)).collect(Collectors.toSet());
-
-            if (!toAdd.isEmpty()) {
+            CategoryModel categoryModel = categoryMapper.toModel(categoryDto);
+            // handle products
+            Set<Long> productCodes = categoryDto.getProductCodes();
+            if (!CollectionUtils.isEmpty(productCodes)) {
                 Set<ProductModel> products = new HashSet<>();
-                toAdd.forEach(p -> {
-                    Optional<ProductModel> productModel = productRepository.findByCode(p);
-                    if (productModel.isPresent()) {
-                        products.add(productModel.get());
+                productCodes.forEach(p -> {
+                    try {
+                        Optional<ProductModel> productModel = productRepository.findByCode(p);
+                        productModel.ifPresent(products::add);
+                    } catch (Exception ex) {
+                        log.warn("Failed to load product with code {}. Skipping. Error: {}", p, ex);
                     }
                 });
-                category.getProducts().addAll(products);
+                if (!products.isEmpty()) {
+                    categoryModel.setProducts(products);
+                } else {
+                    categoryModel.setProducts(Collections.emptySet());
+                }
+            } else {
+                categoryModel.setProducts(Collections.emptySet());
             }
 
-            if (!toRemove.isEmpty()) {
-                category.getProducts().removeIf(p -> toRemove.contains(p.getCode()));
-            }
+            categoryRepository.save(categoryModel);
+            return categoryMapper.toDtoResponse(categoryModel);
+        } catch (Exception ex) {
+            log.error("Failed to create category", ex);
+            throw new RuntimeException("Failed to create category", ex);
         }
-
-        categoryRepository.save(category);
-        return categoryMapper.toData(category);
     }
 
     @Override
-    public void deleteCategory(Long code) {
-        if (!categoryRepository.existsByCode(code)) {
-            throw new RuntimeException("Category not found with code: " + code);
+    @Transactional
+    public CategoryDtoResponse updateCategory(CategoryDto categoryDto) {
+        if (categoryDto == null || categoryDto.getCode() == null) {
+            log.warn("updateCategory called with null categoryDto or null code");
+            throw new IllegalArgumentException("Category data and code must not be null");
         }
-        categoryRepository.deleteByCode(code);
+        Long code = categoryDto.getCode();
+        try {
+            CategoryModel category = categoryRepository.findByCode(code)
+                    .orElseThrow(() -> {
+                        log.warn("Category not found with code: {}", code);
+                        return new RuntimeException("Category not found with code: " + code);
+                    });
+
+            category.setName(categoryDto.getName());
+            category.setDescription(categoryDto.getDescription());
+            category.setCode(categoryDto.getCode());
+
+            // handle category updates
+            if (categoryDto.getProductCodes() != null) {
+                Set<Long> allProductCodes = categoryDto.getProductCodes();
+                Set<Long> existingCodes = category.getProducts().stream().map(ProductModel::getCode).collect(Collectors.toSet());
+                Set<Long> toAdd = allProductCodes.stream().filter(codeVal -> !existingCodes.contains(codeVal)).collect(Collectors.toSet());
+                Set<Long> toRemove = existingCodes.stream().filter(codeVal -> !allProductCodes.contains(codeVal)).collect(Collectors.toSet());
+
+                if (!toAdd.isEmpty()) {
+                    Set<ProductModel> productsToAdd = new HashSet<>();
+                    toAdd.forEach(p -> {
+                        try {
+                            Optional<ProductModel> productModel = productRepository.findByCode(p);
+                            productModel.ifPresent(pm-> {
+                                productModel.get().getCategories().add(category);  // <-- owning side
+                                category.getProducts().add(pm);
+                                productRepository.save(productModel.get());
+                            });
+
+                        } catch (Exception ex) {
+                            log.warn("Failed to load product with code {} while updating. Skipping. Error: {}", p, ex);
+                        }
+                    });
+                }
+
+                if (!toRemove.isEmpty()) {
+                    category.getProducts().removeIf(p -> toRemove.contains(p.getCode()));
+                }
+            }
+
+            categoryRepository.save(category);
+            return categoryMapper.toDtoResponse(category);
+        } catch (Exception ex) {
+            log.error("Failed to update category with code {}", code, ex);
+            throw new RuntimeException("Failed to update category", ex);
+        }
+    }
+
+    @Override
+    @Transactional
+    public boolean deleteCategory(Long code) {
+        if (code == null) {
+            log.warn("deleteCategory called with null code");
+            throw new IllegalArgumentException("Category code must not be null");
+        }
+        try {
+            if (!categoryRepository.existsByCode(code)) {
+                log.info("Attempted to delete non-existing category with code {}", code);
+                return false;
+            }
+            categoryRepository.deleteByCode(code);
+            return true;
+        } catch (Exception ex) {
+            log.error("Failed to delete category with code {}", code, ex);
+            throw new RuntimeException("Failed to delete category", ex);
+        }
     }
 }

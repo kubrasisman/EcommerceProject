@@ -1,15 +1,15 @@
 package com.shop.product_service.product.service;
 
-import com.shop.product_service.product.dto.ProductData;
+import com.shop.product_service.product.dto.ProductDto;
+import com.shop.product_service.product.dto.response.ProductDtoResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
-@Service
 public interface ProductService {
-    List<ProductData> getAllProducts();
-    ProductData getProductByCode(Long code);
-    ProductData createProduct(ProductData productDto) ;
-    ProductData updateProduct(Long code, ProductData productDto);
-    void deleteProduct(Long code);
+    List<ProductDtoResponse> getAllProducts();
+    ProductDtoResponse getProductByCode(Long code);
+    ProductDtoResponse createProduct(ProductDto productDto) ;
+    ProductDtoResponse updateProduct(ProductDto productDto);
+    boolean deleteProduct(Long code);
 }

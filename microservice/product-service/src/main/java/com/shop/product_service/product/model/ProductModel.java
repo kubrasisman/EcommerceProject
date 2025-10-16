@@ -24,11 +24,11 @@ public class ProductModel {
     private double price;
     private String imageUrl;
 
-    @ManyToMany
+    @ManyToMany(cascade = { CascadeType.ALL, CascadeType.PERSIST })
     @JoinTable(
             name = "product_categories",
-            joinColumns = @JoinColumn(name = "product_code", referencedColumnName = "code"),
-            inverseJoinColumns = @JoinColumn(name = "category_code", referencedColumnName = "code")
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "category_id")
     )
     private Set<CategoryModel> categories = new HashSet<>();
 

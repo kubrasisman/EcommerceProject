@@ -5,7 +5,7 @@ import lombok.Data;
 import java.util.Set;
 
 @Data
-public class ProductData {
+public class ProductDto {
     private Long id;
     private Long code;
     private String name;

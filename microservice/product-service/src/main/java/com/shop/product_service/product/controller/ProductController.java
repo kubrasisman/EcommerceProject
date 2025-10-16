@@ -1,37 +1,45 @@
 package com.shop.product_service.product.controller;
 
-import com.shop.product_service.product.dto.ProductData;
+import com.shop.product_service.product.dto.ProductDto;
+import com.shop.product_service.product.dto.response.ProductDtoResponse;
 import com.shop.product_service.product.model.ProductModel;
 import com.shop.product_service.product.populator.ProductPopulator;
 import com.shop.product_service.product.repository.ProductRepository;
+import com.shop.product_service.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping(value = "/api/products")
+@RequestMapping(value = "/api/productservice/product")
 @RequiredArgsConstructor
 public class ProductController {
 
-    private final ProductRepository productRepository;
-    private  final ProductPopulator productPopulator;
+    private final ProductService productService;
+
+    @GetMapping(value = "/{id}")
+    public ProductDtoResponse getProduct(@PathVariable Long code) {
+        return productService.getProductByCode(code);
+    }
 
     @GetMapping
-    public List<ProductModel> getProducts() {
-        return (List<ProductModel>) productRepository.findAll();
+    public List<ProductDtoResponse> getProducts() {
+        return productService.getAllProducts();
     }
 
-    @PostMapping
-    public boolean saveProduct(@RequestBody ProductData productDTO) {
-        ProductModel productModel = productPopulator.toModel(productDTO);
-        productRepository.save(productModel);
-        return true;
+    @PostMapping(value = "/save")
+    public ProductDtoResponse saveProduct(@RequestBody ProductDto productDTO) {
+        return productService.createProduct(productDTO);
     }
 
-    @DeleteMapping(value = "/{id}")
+    @PostMapping(value = "/update")
+    public ProductDtoResponse updateProduct(@RequestBody ProductDto productDTO) {
+        return productService.updateProduct(productDTO);
+    }
+
+    @DeleteMapping(value = "remove/{id}")
     public boolean deleteProduct(@PathVariable Long id){
-        productRepository.deleteById(id);
-        return true;
+        return productService.deleteProduct(id);
     }
 }
