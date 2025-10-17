@@ -2,7 +2,8 @@ package com.shop.product_service.product.model;
 
 import com.shop.product_service.category.model.CategoryModel;
 import jakarta.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -11,7 +12,8 @@ import java.util.Set;
 
 @Entity
 @Table(name = "p_product")
-@Data
+@Getter
+@Setter
 public class ProductModel {
 
     @Id
