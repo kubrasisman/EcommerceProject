@@ -10,7 +10,7 @@ const CategoryPage = () => {
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const response = await axios.get("http://localhost:8888/api/productservice/category")
+      const response = await axios.get("http://localhost:8888/api/categories")
       setCategories(response.data)
     }
     fetchCategories()
@@ -18,7 +18,7 @@ const CategoryPage = () => {
 
   const deleteCategory = (code: number | null) => {
     axios
-      .delete(`http://localhost:8888/api/productservice/category/remove/${code}`)
+      .delete(`http://localhost:8888/api/categories/remove/${code}`)
       .then((response) => {
         if (response.status === 200) {
           setCategories((prev) => prev.filter((cat) => cat.code !== code))
@@ -30,7 +30,7 @@ const CategoryPage = () => {
     // Eğer ID varsa -> güncelleme
     if (category.id) {
       axios
-        .post("http://localhost:8888/api/productservice/category/update", category)
+        .post("http://localhost:8888/api/categories/update", category)
         .then((response) => {
           if (response.status === 200) {
             setCategories((prev) =>
@@ -43,7 +43,7 @@ const CategoryPage = () => {
     } else {
       // Yeni kayıt
       axios
-        .post("http://localhost:8888/api/productservice/category/save", category)
+        .post("http://localhost:8888/api/categories/save", category)
         .then((response) => {
           if (response.status === 200) {
             setCategories((prev) => [...prev, response.data])

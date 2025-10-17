@@ -1,12 +1,20 @@
+import AdminLayout from "./components/Layout";
 import CategoryPage from "./page/CategoryPage"
-
+import ProductPage from "./page/ProductPage"
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
 
 function App() {
   return (
-    <div>
-       <CategoryPage />
-    </div>
+    <Router>
+      <Routes>
+        <Route element={<AdminLayout />}>
+          <Route path="/categories" element={<CategoryPage />} />
+          <Route path="/products" element={<ProductPage />} />
+        </Route>
+        <Route path="*" element={<h2>Sayfa bulunamadı 😢</h2>} />
+      </Routes>
+    </Router>
   )
 }
 

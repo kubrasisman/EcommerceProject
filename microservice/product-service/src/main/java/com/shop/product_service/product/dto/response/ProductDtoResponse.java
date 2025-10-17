@@ -1,5 +1,6 @@
 package com.shop.product_service.product.dto.response;
 
+import com.shop.product_service.category.dto.response.CategoryDtoResponse;
 import lombok.Data;
 
 import java.util.Set;
@@ -14,5 +15,5 @@ public class ProductDtoResponse {
     private String brand;
     private double price;
     private String imageUrl;
-    private Set<Long> categoryCodes;
+    private Set<CategoryDtoResponse> categoryCodes;
 }
