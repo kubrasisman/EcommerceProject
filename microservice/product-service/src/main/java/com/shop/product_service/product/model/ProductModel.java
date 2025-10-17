@@ -3,6 +3,8 @@ package com.shop.product_service.product.model;
 import com.shop.product_service.category.model.CategoryModel;
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,6 +32,7 @@ public class ProductModel {
             joinColumns = @JoinColumn(name = "product_id"),
             inverseJoinColumns = @JoinColumn(name = "category_id")
     )
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private Set<CategoryModel> categories = new HashSet<>();
 
 }
