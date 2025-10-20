@@ -9,6 +9,7 @@ function App() {
     <Router>
       <Routes>
         <Route element={<AdminLayout />}>
+          <Route index element={<CategoryPage />} />
           <Route path="/categories" element={<CategoryPage />} />
           <Route path="/products" element={<ProductPage />} />
         </Route>

@@ -2,6 +2,7 @@ package com.shop.product_service.product.controller;
 
 import com.shop.product_service.product.dto.ProductDto;
 import com.shop.product_service.product.dto.response.ProductDtoResponse;
+import com.shop.product_service.product.dto.response.ProductPageableResponse;
 import com.shop.product_service.product.model.ProductModel;
 import com.shop.product_service.product.populator.ProductPopulator;
 import com.shop.product_service.product.repository.ProductRepository;
@@ -14,18 +15,22 @@ import java.util.List;
 @RestController
 @RequestMapping(value = "/api/products")
 @RequiredArgsConstructor
-public class ProductController {
+public class ProductController extends AbstractController{
 
     private final ProductService productService;
 
     @GetMapping(value = "/{id}")
-    public ProductDtoResponse getProduct(@PathVariable Long code) {
+    public ProductDtoResponse getProduct(@PathVariable("id") Long code) {
         return productService.getProductByCode(code);
     }
 
     @GetMapping
-    public List<ProductDtoResponse> getProducts() {
-        return productService.getAllProducts();
+    public ProductPageableResponse getProducts(
+            @RequestParam(value = "page", required = false, defaultValue = "0") Integer page,
+            @RequestParam(value = "limit", required = false, defaultValue = "20") Integer limit,
+            @RequestParam(value = "order", required = false, defaultValue = "ASC") String order,
+            @RequestParam(value = "sort", required = false, defaultValue = "id") String sort) {
+        return productService.getPageableProducts(generatePageable(page, limit, order, sort));
     }
 
     @PostMapping(value = "/save")

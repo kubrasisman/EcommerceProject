@@ -8,10 +8,23 @@ const ProductPage = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
+  // Normalize various possible API response shapes into an array of Product
+  const normalizeProducts = (payload: any): Product[] => {
+    if (!payload) return []
+    if (Array.isArray(payload)) return payload
+    if (payload.data && Array.isArray(payload.data)) return payload.data
+    if (payload.products && Array.isArray(payload.products)) return payload.products
+    // If it's an object keyed by id, return its values
+    if (typeof payload === "object") {
+      return Object.values(payload).filter((p) => p && typeof p === "object") as Product[]
+    }
+    return []
+  }
+
   useEffect(() => {
     const fetchProducts = async () => {
       const response = await axios.get("http://localhost:8888/api/products")
-      setProducts(response.data)
+      setProducts(normalizeProducts(response.data))
     }
     fetchProducts()
   }, [])
@@ -21,7 +34,10 @@ const ProductPage = () => {
       .delete(`http://localhost:8888/api/products/remove/${id}`)
       .then((response) => {
         if (response.status === 200) {
-          setProducts((prev) => prev.filter((p) => p.id !== id))
+          setProducts((prev) => {
+            const arr = Array.isArray(prev) ? prev : (Object.values(prev as any) as Product[])
+            return arr.filter((p) => p.id !== id)
+          })
         }
       })
   }
@@ -33,11 +49,10 @@ const ProductPage = () => {
         .post("http://localhost:8888/api/products/update", product)
         .then((response) => {
           if (response.status === 200) {
-            setProducts((prev) =>
-              prev.map((p) =>
-                p.id === product.id ? response.data : p
-              )
-            )
+            setProducts((prev) => {
+              const arr = Array.isArray(prev) ? prev : (Object.values(prev as any) as Product[])
+              return arr.map((p) => (p.id === product.id ? response.data : p))
+            })
           }
         })
     } else {
@@ -46,11 +61,17 @@ const ProductPage = () => {
         .post("http://localhost:8888/api/products/save", product)
         .then((response) => {
           if (response.status === 200) {
-            setProducts((prev) => [...prev, response.data])
+            setProducts((prev) => {
+              const arr = Array.isArray(prev) ? prev : (Object.values(prev as any) as Product[])
+              return [...arr, response.data]
+            })
           }
         })
     }
   }
+
+  // compute productsList once to use in JSX rendering
+  const productsList: Product[] = Array.isArray(products) ? products : (Object.values(products as any) as Product[])
 
   return (
     <div className="flex w-screen flex-col ps-10 pe-10 pt-6 pb-6">
@@ -83,7 +104,7 @@ const ProductPage = () => {
             </tr>
           </thead>
           <tbody>
-            {products.map((product) => (
+            {productsList.map((product) => (
               <tr key={product.id}>
                 <td className="border border-slate-300 px-4 py-2">{product.id}</td>
                 <td className="border border-slate-300 px-4 py-2">{product.code}</td>

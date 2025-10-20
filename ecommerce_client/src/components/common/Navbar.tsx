@@ -1,19 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { ShoppingCart, Search, Menu, MapPin, ChevronDown } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
-import { useAppSelector } from '@/store/store'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { useAppSelector, useAppDispatch } from '@/store/store'
+import { fetchCategories } from '@/store/slices/productSlice'
 import { Button } from '@/components/ui/button'
 import MiniCart from '@/components/cart/MiniCart'
 import type { Product } from '@/types/product.types'
-
-const categories = [
-  { name: 'Electronics', path: '/search?category=electronics' },
-  { name: 'Fashion', path: '/search?category=fashion' },
-  { name: 'Home & Living', path: '/search?category=home' },
-  { name: 'Sports', path: '/search?category=sports' },
-  { name: 'Books', path: '/search?category=books' },
-  { name: 'Toys & Games', path: '/search?category=toys' },
-]
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -25,12 +17,17 @@ export default function Navbar() {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const searchRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
 
   const { user } = useAppSelector((state) => state.auth)
   const { items } = useAppSelector((state) => state.cart)
-  const { products } = useAppSelector((state) => state.products)
-
+  const { products, categories } = useAppSelector((state) => state.products)
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+
+  // Fetch categories on mount
+  useEffect(() => {
+    dispatch(fetchCategories())
+  }, [dispatch])
 
   // Click outside to close suggestions
   useEffect(() => {
@@ -44,24 +41,29 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Search suggestions
-  useEffect(() => {
-    if (searchQuery.trim().length >= 2) {
-      // Filter products based on search query
-      const filtered = products.filter(
+  // Memoized search suggestions to prevent infinite loops
+  const filteredSuggestions = useMemo(() => {
+    if (searchQuery.trim().length >= 2 && products.length > 0) {
+      return products.filter(
         (product) =>
           product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.categoryCodes.some(cat => cat.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
           product.brand?.toLowerCase().includes(searchQuery.toLowerCase())
       ).slice(0, 8)
+    }
+    return []
+  }, [searchQuery, products.length])
 
-      setSuggestions(filtered)
-      setShowSuggestions(true)
+  // Update suggestions when filtered results change
+  useEffect(() => {
+    if (searchQuery.trim().length >= 2) {
+      setSuggestions(filteredSuggestions)
+      setShowSuggestions(filteredSuggestions.length > 0)
     } else {
       setSuggestions([])
       setShowSuggestions(false)
     }
-  }, [searchQuery, products])
+  }, [searchQuery, filteredSuggestions])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -72,8 +74,8 @@ export default function Navbar() {
     }
   }
 
-  const handleSuggestionClick = (productId: string) => {
-    navigate(`/product/${productId}`)
+  const handleSuggestionClick = (productCode: number) => {
+    navigate(`/product/${productCode}`)
     setSearchQuery('')
     setShowSuggestions(false)
   }
@@ -119,13 +121,12 @@ export default function Navbar() {
                       onChange={(e) => setSelectedCategory(e.target.value)}
                       className="hidden md:block bg-gray-200 text-gray-900 px-3 rounded-l-md border-r border-gray-300 text-sm focus:outline-none"
                     >
-                      <option>All</option>
-                      <option>Electronics</option>
-                      <option>Fashion</option>
-                      <option>Home</option>
-                      <option>Sports</option>
-                      <option>Books</option>
-                      <option>Toys</option>
+                      <option value="All">All</option>
+                      {categories && categories.map((category) => (
+                        <option key={category.code} value={category.name}>
+                          {category.name}
+                        </option>
+                      ))}
                     </select>
                     <input
                       type="text"
@@ -150,14 +151,14 @@ export default function Navbar() {
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white text-gray-900 shadow-lg rounded-md max-h-[500px] overflow-y-auto z-50 border border-gray-200">
                     {suggestions.map((product) => (
                       <button
-                        key={product.id}
-                        onClick={() => handleSuggestionClick(product.id)}
+                        key={product.code}
+                        onClick={() => handleSuggestionClick(product.code)}
                         className="w-full flex items-center gap-3 p-3 hover:bg-gray-100 transition-colors text-left border-b last:border-b-0"
                       >
                         {/* Product Image */}
                         <div className="w-12 h-12 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
                           <img
-                            src={product.thumbnail}
+                            src={product.thumbnail || product.imageUrl}
                             alt={product.name}
                             className="w-full h-full object-cover"
                             loading="lazy"
@@ -170,8 +171,8 @@ export default function Navbar() {
                             {product.name}
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500">{product.category}</span>
-                            {product.rating > 0 && (
+                            <span className="text-xs text-gray-500">{product.categoryCodes[0]?.name || 'Product'}</span>
+                            {product.rating && product.rating > 0 && (
                               <>
                                 <span className="text-xs text-gray-300">•</span>
                                 <div className="flex items-center gap-1">
@@ -284,10 +285,10 @@ export default function Navbar() {
                       onClick={() => setIsCategoryMenuOpen(false)}
                     />
                     <div className="absolute top-full left-0 mt-1 w-64 bg-white text-gray-900 shadow-lg rounded-md z-20">
-                      {categories.map((category) => (
+                      {categories && categories.map((category) => (
                         <Link
-                          key={category.name}
-                          to={category.path}
+                          key={category.code}
+                          to={`/search?category=${category.name.toLowerCase().replace(' & ', '-').replace(' ', '-')}`}
                           onClick={() => setIsCategoryMenuOpen(false)}
                           className="block px-4 py-3 hover:bg-gray-100 border-b border-gray-200 last:border-b-0"
                         >
@@ -301,10 +302,10 @@ export default function Navbar() {
 
               {/* Category Links */}
               <div className="hidden lg:flex items-center gap-6">
-                {categories.slice(0, 5).map((category) => (
+                {categories && categories.slice(0, 5).map((category) => (
                   <Link
-                    key={category.name}
-                    to={category.path}
+                    key={category.code}
+                    to={`/search?category=${category.name.toLowerCase().replace(' & ', '-').replace(' ', '-')}`}
                     className="hover:outline hover:outline-1 hover:outline-white px-2 py-1 rounded whitespace-nowrap"
                   >
                     {category.name}
@@ -349,10 +350,10 @@ export default function Navbar() {
 
                 {/* Categories */}
                 <div className="font-bold mb-2">Shop by Category</div>
-                {categories.map((category) => (
+                {categories && categories.map((category) => (
                   <Link
-                    key={category.name}
-                    to={category.path}
+                    key={category.code}
+                    to={`/search?category=${category.name.toLowerCase().replace(' & ', '-').replace(' ', '-')}`}
                     onClick={() => setIsMenuOpen(false)}
                     className="block py-2 px-3 hover:bg-gray-100 rounded"
                   >
