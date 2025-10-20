@@ -1,13 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { ShoppingCart, Search, Menu, MapPin, ChevronDown } from 'lucide-react'
-import { useState, useEffect, useRef } from 'react'
-import { useAppDispatch, useAppSelector } from '@/store/store'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { useAppSelector, useAppDispatch } from '@/store/store'
+import { fetchCategories } from '@/store/slices/productSlice'
 import { Button } from '@/components/ui/button'
 import MiniCart from '@/components/cart/MiniCart'
 import type { Product } from '@/types/product.types'
-import { fetchCategories } from '@/store/slices/productSlice'
-
-
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -19,13 +17,17 @@ export default function Navbar() {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const searchRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
 
   const { user } = useAppSelector((state) => state.auth)
   const { items } = useAppSelector((state) => state.cart)
-  const { products } = useAppSelector((state) => state.products)
-  const { categories } = useAppSelector((state) => state.products)
-  const dispatch = useAppDispatch()
+  const { products, categories } = useAppSelector((state) => state.products)
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+
+  // Fetch categories on mount
+  useEffect(() => {
+    dispatch(fetchCategories())
+  }, [dispatch])
 
   // Click outside to close suggestions
   useEffect(() => {
@@ -39,25 +41,29 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Search suggestions
-  useEffect(() => {
-    if (searchQuery.trim().length >= 2) {
-      // Filter products based on search query
-      const filtered = products.filter(
+  // Memoized search suggestions to prevent infinite loops
+  const filteredSuggestions = useMemo(() => {
+    if (searchQuery.trim().length >= 2 && products.length > 0) {
+      return products.filter(
         (product) =>
           product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           product.categoryCodes.some(cat => cat.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
           product.brand?.toLowerCase().includes(searchQuery.toLowerCase())
       ).slice(0, 8)
+    }
+    return []
+  }, [searchQuery, products.length])
 
-      setSuggestions(filtered)
-      setShowSuggestions(true)
+  // Update suggestions when filtered results change
+  useEffect(() => {
+    if (searchQuery.trim().length >= 2) {
+      setSuggestions(filteredSuggestions)
+      setShowSuggestions(filteredSuggestions.length > 0)
     } else {
       setSuggestions([])
       setShowSuggestions(false)
     }
-    dispatch(fetchCategories())
-  }, [searchQuery, products, categories])
+  }, [searchQuery, filteredSuggestions])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -115,13 +121,12 @@ export default function Navbar() {
                       onChange={(e) => setSelectedCategory(e.target.value)}
                       className="hidden md:block bg-gray-200 text-gray-900 px-3 rounded-l-md border-r border-gray-300 text-sm focus:outline-none"
                     >
-                      <option>All</option>
-                      <option>Electronics</option>
-                      <option>Fashion</option>
-                      <option>Home</option>
-                      <option>Sports</option>
-                      <option>Books</option>
-                      <option>Toys</option>
+                      <option value="All">All</option>
+                      {categories && categories.map((category) => (
+                        <option key={category.code} value={category.name}>
+                          {category.name}
+                        </option>
+                      ))}
                     </select>
                     <input
                       type="text"
@@ -282,8 +287,8 @@ export default function Navbar() {
                     <div className="absolute top-full left-0 mt-1 w-64 bg-white text-gray-900 shadow-lg rounded-md z-20">
                       {categories && categories.map((category) => (
                         <Link
-                          key={category.name}
-                          to={`/search?category=${category.code}`}
+                          key={category.code}
+                          to={`/search?category=${category.name.toLowerCase().replace(' & ', '-').replace(' ', '-')}`}
                           onClick={() => setIsCategoryMenuOpen(false)}
                           className="block px-4 py-3 hover:bg-gray-100 border-b border-gray-200 last:border-b-0"
                         >
@@ -299,8 +304,8 @@ export default function Navbar() {
               <div className="hidden lg:flex items-center gap-6">
                 {categories && categories.slice(0, 5).map((category) => (
                   <Link
-                    key={category.name}
-                    to={`/search?category=${category.code}`}
+                    key={category.code}
+                    to={`/search?category=${category.name.toLowerCase().replace(' & ', '-').replace(' ', '-')}`}
                     className="hover:outline hover:outline-1 hover:outline-white px-2 py-1 rounded whitespace-nowrap"
                   >
                     {category.name}
@@ -347,8 +352,8 @@ export default function Navbar() {
                 <div className="font-bold mb-2">Shop by Category</div>
                 {categories && categories.map((category) => (
                   <Link
-                    key={category.name}
-                    to={`/search?category=${category.code}`}
+                    key={category.code}
+                    to={`/search?category=${category.name.toLowerCase().replace(' & ', '-').replace(' ', '-')}`}
                     onClick={() => setIsMenuOpen(false)}
                     className="block py-2 px-3 hover:bg-gray-100 rounded"
                   >

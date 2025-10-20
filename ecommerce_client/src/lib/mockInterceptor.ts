@@ -3,6 +3,17 @@ import { mockProducts, getMockProducts, searchMockProducts, getMockProductByCode
 import { generateOrderNumber, generateId } from './helpers'
 import type { Cart, CartItem } from '@/types/cart.types'
 import type { Order } from '@/types/order.types'
+import type { Category } from '@/types/category.types'
+
+// Mock categories
+const mockCategories: Category[] = [
+  { id: 1, code: 1001, name: 'Electronics', description: 'Electronic devices and accessories' },
+  { id: 2, code: 1002, name: 'Fashion', description: 'Clothing, shoes and accessories' },
+  { id: 3, code: 1003, name: 'Home & Living', description: 'Furniture and home decor' },
+  { id: 4, code: 1004, name: 'Sports', description: 'Sports equipment and outdoor gear' },
+  { id: 5, code: 1005, name: 'Books', description: 'Books, magazines and e-books' },
+  { id: 6, code: 1006, name: 'Toys & Games', description: 'Toys, games and hobbies' },
+]
 
 // In-memory storage for mock data
 const storage = {
@@ -26,6 +37,73 @@ export function setupMockInterceptor(apiInstance: AxiosInstance, useMock = true)
       await delay(300)
 
       // Mock responses
+      
+      // CATEGORY ENDPOINTS
+      
+      // GET /categories - Get all categories
+      if (method === 'GET' && url.endsWith('/categories')) {
+        const mockResponse = {
+          data: mockCategories,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config,
+        }
+        throw { response: mockResponse, config: { ...config, adapter: () => Promise.resolve(mockResponse) } }
+      }
+
+      // GET /categories/{code} - Get category by code
+      if (method === 'GET' && url.match(/\/categories\/\d+$/)) {
+        const code = parseInt(url.split('/').pop() || '0')
+        const category = mockCategories.find(c => c.code === code)
+        
+        const mockResponse = {
+          data: category || mockCategories[0],
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config,
+        }
+        throw { response: mockResponse, config: { ...config, adapter: () => Promise.resolve(mockResponse) } }
+      }
+
+      // POST /categories/save - Create category
+      if (method === 'POST' && url.includes('/categories/save')) {
+        const mockResponse = {
+          data: { ...config.data, id: mockCategories.length + 1, code: 1000 + mockCategories.length + 1 },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config,
+        }
+        throw { response: mockResponse, config: { ...config, adapter: () => Promise.resolve(mockResponse) } }
+      }
+
+      // POST /categories/update - Update category
+      if (method === 'POST' && url.includes('/categories/update')) {
+        const mockResponse = {
+          data: config.data,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config,
+        }
+        throw { response: mockResponse, config: { ...config, adapter: () => Promise.resolve(mockResponse) } }
+      }
+
+      // DELETE /categories/remove/{id} - Delete category
+      if (method === 'DELETE' && url.includes('/categories/remove/')) {
+        const mockResponse = {
+          data: true,
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config,
+        }
+        throw { response: mockResponse, config: { ...config, adapter: () => Promise.resolve(mockResponse) } }
+      }
+
+      // PRODUCT ENDPOINTS
       
       // GET /products/{code} - Get product by code
       if (method === 'GET' && url.match(/\/products\/\d+$/)) {

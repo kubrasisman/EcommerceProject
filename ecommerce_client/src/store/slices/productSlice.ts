@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import type { Product, ProductFilter, ProductQueryParams } from '@/types/product.types'
 import type { LoadingState } from '@/types/common.types'
 import { productService } from '@/services/productService'
+import { categoryService } from '@/services/categoryService'
 import type { Category } from '@/types/category.types'
 
 interface ProductState {
@@ -77,7 +78,7 @@ export const searchProducts = createAsyncThunk(
 export const fetchCategories = createAsyncThunk(
     'products/fetchCategories',
     async () => {
-        const response = await productService.getCategories()
+        const response = await categoryService.getAllCategories()
         return response
     }
 )
