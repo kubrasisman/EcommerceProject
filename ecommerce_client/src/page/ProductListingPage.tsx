@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/store'
 import { fetchProducts, searchProducts } from '@/store/slices/productSlice'
-import type { ProductFilter, ProductSort } from '@/types/product.types'
 import Layout from '@/components/common/Layout'
 import ProductCard from '@/components/common/ProductCard'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -13,29 +12,40 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 export default function ProductListingPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const dispatch = useAppDispatch()
-  const { products, loading, page, totalPages } = useAppSelector((state) => state.products)
+  const { products, loading, currentPage, totalPage } = useAppSelector((state) => state.products)
 
-  const [sort, setSort] = useState<ProductSort>({ field: 'createdAt', order: 'desc' })
+  const [sortBy, setSortBy] = useState('id')
+  const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC')
 
   const category = searchParams.get('category') || undefined
   const query = searchParams.get('q') || undefined
+  const pageParam = parseInt(searchParams.get('page') || '0')
 
   useEffect(() => {
-    const filter: ProductFilter = {
-      category,
-      search: query,
-    }
 
     if (query) {
-      dispatch(searchProducts({ query, page }))
+      dispatch(searchProducts({ 
+        query, 
+        page: pageParam,
+        limit: 20
+      }))
     } else {
-      dispatch(fetchProducts({ filter, sort, page }))
+
+      dispatch(fetchProducts({ 
+        page: pageParam,
+        limit: 20,
+        sort: sortBy,
+        order: sortOrder,
+        category,
+        search: query
+      }))
     }
-  }, [dispatch, category, query, sort, page])
+  }, [dispatch, category, query, sortBy, sortOrder, pageParam])
 
   const handleSortChange = (value: string) => {
     const [field, order] = value.split('-')
-    setSort({ field: field as ProductSort['field'], order: order as 'asc' | 'desc' })
+    setSortBy(field)
+    setSortOrder(order as 'ASC' | 'DESC')
   }
 
   const handlePageChange = (newPage: number) => {
@@ -60,13 +70,13 @@ export default function ProductListingPage() {
           <div className="mt-4 md:mt-0">
             <Select
               options={[
-                { value: 'createdAt-desc', label: 'Newest' },
-                { value: 'price-asc', label: 'Price: Low to High' },
-                { value: 'price-desc', label: 'Price: High to Low' },
-                { value: 'rating-desc', label: 'Highest Rated' },
-                { value: 'name-asc', label: 'Name: A to Z' },
+                { value: 'id-DESC', label: 'Newest' },
+                { value: 'price-ASC', label: 'Price: Low to High' },
+                { value: 'price-DESC', label: 'Price: High to Low' },
+                { value: 'name-ASC', label: 'Name: A to Z' },
+                { value: 'name-DESC', label: 'Name: Z to A' },
               ]}
-              value={`${sort.field}-${sort.order}`}
+              value={`${sortBy}-${sortOrder}`}
               onChange={(e) => handleSortChange(e.target.value)}
             />
           </div>
@@ -92,33 +102,32 @@ export default function ProductListingPage() {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {products.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.code} product={product} />
               ))}
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
+            {totalPage > 1 && (
               <div className="flex items-center justify-center space-x-2 mt-12">
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handlePageChange(page - 1)}
-                  disabled={page === 1}
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 0}
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Previous
                 </Button>
                 <div className="flex items-center space-x-1">
-                  {[...Array(Math.min(5, totalPages))].map((_, i) => {
-                    const pageNum = i + 1
+                  {[...Array(Math.min(5, totalPage))].map((_, i) => {
                     return (
                       <Button
-                        key={pageNum}
-                        variant={page === pageNum ? 'default' : 'outline'}
+                        key={i}
+                        variant={currentPage === i ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => handlePageChange(pageNum)}
+                        onClick={() => handlePageChange(i)}
                       >
-                        {pageNum}
+                        {i + 1}
                       </Button>
                     )
                   })}
@@ -126,8 +135,8 @@ export default function ProductListingPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => handlePageChange(page + 1)}
-                  disabled={page === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPage - 1}
                 >
                   Next
                   <ChevronRight className="h-4 w-4" />

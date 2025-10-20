@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/store'
-import { fetchProductById, fetchRelatedProducts } from '@/store/slices/productSlice'
+import { fetchProductByCode, fetchRelatedProducts } from '@/store/slices/productSlice'
 import { addToCart } from '@/store/slices/cartSlice'
 import Layout from '@/components/common/Layout'
 import ProductCard from '@/components/common/ProductCard'
@@ -23,14 +23,15 @@ export default function ProductDetailPage() {
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchProductById(id))
-      dispatch(fetchRelatedProducts(id))
+      const code = parseInt(id)
+      dispatch(fetchProductByCode(code))
+      dispatch(fetchRelatedProducts(code))
     }
   }, [dispatch, id])
 
   const handleAddToCart = () => {
-    if (selectedProduct && id) {
-      dispatch(addToCart({ productId: id, quantity }))
+    if (selectedProduct) {
+      dispatch(addToCart({ productId: selectedProduct.code.toString(), quantity }))
       addToast({
         title: 'Added to cart',
         description: `${selectedProduct.name} has been added to your cart.`,
@@ -61,6 +62,9 @@ export default function ProductDetailPage() {
     ? Math.round(((selectedProduct.originalPrice - selectedProduct.price) / selectedProduct.originalPrice) * 100)
     : 0
 
+  const primaryCategory = selectedProduct.categoryCodes[0]?.name || 'Product'
+  const productImages = selectedProduct.images || [selectedProduct.thumbnail || selectedProduct.imageUrl]
+
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
@@ -68,8 +72,8 @@ export default function ProductDetailPage() {
         <nav className="mb-6 text-sm text-muted-foreground">
           <Link to="/" className="hover:text-foreground">Home</Link>
           {' / '}
-          <Link to={`/search?category=${selectedProduct.category}`} className="hover:text-foreground">
-            {selectedProduct.category}
+          <Link to={`/search?category=${primaryCategory.toLowerCase()}`} className="hover:text-foreground">
+            {primaryCategory}
           </Link>
           {' / '}
           <span className="text-foreground">{selectedProduct.name}</span>
@@ -81,31 +85,35 @@ export default function ProductDetailPage() {
           <div className="space-y-4">
             <div className="aspect-square overflow-hidden rounded-lg border bg-muted">
               <img
-                src={selectedProduct.images[selectedImage] || selectedProduct.thumbnail}
+                src={productImages[selectedImage]}
                 alt={selectedProduct.name}
                 className="h-full w-full object-cover"
               />
             </div>
-            <div className="grid grid-cols-4 gap-4">
-              {selectedProduct.images.map((image, index) => (
-                <button
-                  key={index}
-                  onClick={() => setSelectedImage(index)}
-                  className={`aspect-square overflow-hidden rounded-lg border-2 ${
-                    selectedImage === index ? 'border-primary' : 'border-transparent'
-                  }`}
-                >
-                  <img src={image} alt={`${selectedProduct.name} ${index + 1}`} className="h-full w-full object-cover" />
-                </button>
-              ))}
-            </div>
+            {productImages.length > 1 && (
+              <div className="grid grid-cols-4 gap-4">
+                {productImages.map((image, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setSelectedImage(index)}
+                    className={`aspect-square overflow-hidden rounded-lg border-2 ${
+                      selectedImage === index ? 'border-primary' : 'border-transparent'
+                    }`}
+                  >
+                    <img src={image} alt={`${selectedProduct.name} ${index + 1}`} className="h-full w-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Product Info */}
           <div className="space-y-6">
             <div>
               <div className="flex items-center gap-2 mb-2">
-                <Badge>{selectedProduct.category}</Badge>
+                {selectedProduct.categoryCodes.map((cat) => (
+                  <Badge key={cat.code}>{cat.name}</Badge>
+                ))}
                 {discountPercentage > 0 && (
                   <Badge variant="destructive">-{discountPercentage}%</Badge>
                 )}
@@ -114,12 +122,21 @@ export default function ProductDetailPage() {
                 )}
               </div>
               <h1 className="text-3xl font-bold mb-2">{selectedProduct.name}</h1>
+              {selectedProduct.title && selectedProduct.title !== selectedProduct.name && (
+                <h2 className="text-xl text-muted-foreground mb-2">{selectedProduct.title}</h2>
+              )}
               <div className="flex items-center space-x-4">
-                <div className="flex items-center">
-                  <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                  <span className="ml-1 font-semibold">{selectedProduct.rating.toFixed(1)}</span>
-                </div>
-                <span className="text-muted-foreground">({selectedProduct.reviewCount} reviews)</span>
+                {selectedProduct.rating && selectedProduct.reviewCount ? (
+                  <>
+                    <div className="flex items-center">
+                      <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                      <span className="ml-1 font-semibold">{selectedProduct.rating.toFixed(1)}</span>
+                    </div>
+                    <span className="text-muted-foreground">({selectedProduct.reviewCount} reviews)</span>
+                  </>
+                ) : (
+                  <span className="text-muted-foreground">No reviews yet</span>
+                )}
               </div>
             </div>
 
@@ -134,7 +151,7 @@ export default function ProductDetailPage() {
 
             <p className="text-muted-foreground leading-relaxed">{selectedProduct.description}</p>
 
-            {selectedProduct.stock > 0 && selectedProduct.stock < 10 && (
+            {selectedProduct.stock && selectedProduct.stock > 0 && selectedProduct.stock < 10 && (
               <p className="text-orange-600 font-medium">
                 Only {selectedProduct.stock} left in stock!
               </p>
@@ -156,7 +173,7 @@ export default function ProductDetailPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setQuantity(Math.min(selectedProduct.stock, quantity + 1))}
+                  onClick={() => setQuantity(Math.min(selectedProduct.stock || 999, quantity + 1))}
                   className="h-10 w-10 p-0"
                 >
                   +
@@ -217,10 +234,10 @@ export default function ProductDetailPage() {
         {/* Customer Reviews */}
         <div className="mb-16">
           <ReviewSection
-            productId={selectedProduct.id}
+            productId={selectedProduct.code.toString()}
             productName={selectedProduct.name}
-            averageRating={selectedProduct.rating}
-            totalReviews={selectedProduct.reviewCount}
+            averageRating={selectedProduct.rating || 0}
+            totalReviews={selectedProduct.reviewCount || 0}
           />
         </div>
 
@@ -230,7 +247,7 @@ export default function ProductDetailPage() {
             <h2 className="text-2xl font-bold mb-6">Related Products</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               {relatedProducts.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.code} product={product} />
               ))}
             </div>
           </div>

@@ -1,19 +1,13 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { ShoppingCart, Search, Menu, MapPin, ChevronDown } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
-import { useAppSelector } from '@/store/store'
+import { useAppDispatch, useAppSelector } from '@/store/store'
 import { Button } from '@/components/ui/button'
 import MiniCart from '@/components/cart/MiniCart'
 import type { Product } from '@/types/product.types'
+import { fetchCategories } from '@/store/slices/productSlice'
 
-const categories = [
-  { name: 'Electronics', path: '/search?category=electronics' },
-  { name: 'Fashion', path: '/search?category=fashion' },
-  { name: 'Home & Living', path: '/search?category=home' },
-  { name: 'Sports', path: '/search?category=sports' },
-  { name: 'Books', path: '/search?category=books' },
-  { name: 'Toys & Games', path: '/search?category=toys' },
-]
+
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -29,7 +23,8 @@ export default function Navbar() {
   const { user } = useAppSelector((state) => state.auth)
   const { items } = useAppSelector((state) => state.cart)
   const { products } = useAppSelector((state) => state.products)
-
+  const { categories } = useAppSelector((state) => state.products)
+  const dispatch = useAppDispatch()
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
 
   // Click outside to close suggestions
@@ -51,7 +46,7 @@ export default function Navbar() {
       const filtered = products.filter(
         (product) =>
           product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          product.categoryCodes.some(cat => cat.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
           product.brand?.toLowerCase().includes(searchQuery.toLowerCase())
       ).slice(0, 8)
 
@@ -61,7 +56,8 @@ export default function Navbar() {
       setSuggestions([])
       setShowSuggestions(false)
     }
-  }, [searchQuery, products])
+    dispatch(fetchCategories())
+  }, [searchQuery, products, categories])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -72,8 +68,8 @@ export default function Navbar() {
     }
   }
 
-  const handleSuggestionClick = (productId: string) => {
-    navigate(`/product/${productId}`)
+  const handleSuggestionClick = (productCode: number) => {
+    navigate(`/product/${productCode}`)
     setSearchQuery('')
     setShowSuggestions(false)
   }
@@ -150,14 +146,14 @@ export default function Navbar() {
                   <div className="absolute top-full left-0 right-0 mt-1 bg-white text-gray-900 shadow-lg rounded-md max-h-[500px] overflow-y-auto z-50 border border-gray-200">
                     {suggestions.map((product) => (
                       <button
-                        key={product.id}
-                        onClick={() => handleSuggestionClick(product.id)}
+                        key={product.code}
+                        onClick={() => handleSuggestionClick(product.code)}
                         className="w-full flex items-center gap-3 p-3 hover:bg-gray-100 transition-colors text-left border-b last:border-b-0"
                       >
                         {/* Product Image */}
                         <div className="w-12 h-12 flex-shrink-0 bg-gray-100 rounded overflow-hidden">
                           <img
-                            src={product.thumbnail}
+                            src={product.thumbnail || product.imageUrl}
                             alt={product.name}
                             className="w-full h-full object-cover"
                             loading="lazy"
@@ -170,8 +166,8 @@ export default function Navbar() {
                             {product.name}
                           </div>
                           <div className="flex items-center gap-2">
-                            <span className="text-xs text-gray-500">{product.category}</span>
-                            {product.rating > 0 && (
+                            <span className="text-xs text-gray-500">{product.categoryCodes[0]?.name || 'Product'}</span>
+                            {product.rating && product.rating > 0 && (
                               <>
                                 <span className="text-xs text-gray-300">•</span>
                                 <div className="flex items-center gap-1">
@@ -284,10 +280,10 @@ export default function Navbar() {
                       onClick={() => setIsCategoryMenuOpen(false)}
                     />
                     <div className="absolute top-full left-0 mt-1 w-64 bg-white text-gray-900 shadow-lg rounded-md z-20">
-                      {categories.map((category) => (
+                      {categories && categories.map((category) => (
                         <Link
                           key={category.name}
-                          to={category.path}
+                          to={`/search?category=${category.code}`}
                           onClick={() => setIsCategoryMenuOpen(false)}
                           className="block px-4 py-3 hover:bg-gray-100 border-b border-gray-200 last:border-b-0"
                         >
@@ -301,10 +297,10 @@ export default function Navbar() {
 
               {/* Category Links */}
               <div className="hidden lg:flex items-center gap-6">
-                {categories.slice(0, 5).map((category) => (
+                {categories && categories.slice(0, 5).map((category) => (
                   <Link
                     key={category.name}
-                    to={category.path}
+                    to={`/search?category=${category.code}`}
                     className="hover:outline hover:outline-1 hover:outline-white px-2 py-1 rounded whitespace-nowrap"
                   >
                     {category.name}
@@ -349,10 +345,10 @@ export default function Navbar() {
 
                 {/* Categories */}
                 <div className="font-bold mb-2">Shop by Category</div>
-                {categories.map((category) => (
+                {categories && categories.map((category) => (
                   <Link
                     key={category.name}
-                    to={category.path}
+                    to={`/search?category=${category.code}`}
                     onClick={() => setIsMenuOpen(false)}
                     className="block py-2 px-3 hover:bg-gray-100 rounded"
                   >

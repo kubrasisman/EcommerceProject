@@ -18,7 +18,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    dispatch(addToCart({ productId: product.id, quantity: 1 }))
+    dispatch(addToCart({ productId: product.code.toString(), quantity: 1 }))
     addToast({
       title: 'Added to cart',
       description: `${product.name} has been added to your cart.`,
@@ -31,15 +31,17 @@ export default function ProductCard({ product }: ProductCardProps) {
     ? Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)
     : 0
 
+  const primaryCategory = product.categoryCodes[0]?.name || 'Product'
+
   return (
     <Link
-      to={`/product/${product.id}`}
+      to={`/product/${product.code}`}
       className="group block bg-card rounded-lg border overflow-hidden transition-all hover:shadow-lg hover:border-primary/50"
     >
       {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-muted">
         <img
-          src={product.thumbnail}
+          src={product.thumbnail || product.imageUrl}
           alt={product.name}
           className="h-full w-full object-cover transition-transform group-hover:scale-105"
         />
@@ -58,7 +60,7 @@ export default function ProductCard({ product }: ProductCardProps) {
       {/* Content */}
       <div className="p-4 space-y-2">
         {/* Category */}
-        <p className="text-xs text-muted-foreground uppercase">{product.category}</p>
+        <p className="text-xs text-muted-foreground uppercase">{primaryCategory}</p>
 
         {/* Name */}
         <h3 className="font-semibold line-clamp-2 group-hover:text-primary transition-colors">
@@ -66,11 +68,18 @@ export default function ProductCard({ product }: ProductCardProps) {
         </h3>
 
         {/* Rating */}
-        <div className="flex items-center space-x-1">
-          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-          <span className="text-sm font-medium">{product.rating.toFixed(1)}</span>
-          <span className="text-xs text-muted-foreground">({product.reviewCount})</span>
-        </div>
+        {product.rating && product.reviewCount ? (
+          <div className="flex items-center space-x-1">
+            <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+            <span className="text-sm font-medium">{product.rating.toFixed(1)}</span>
+            <span className="text-xs text-muted-foreground">({product.reviewCount})</span>
+          </div>
+        ) : (
+          <div className="flex items-center space-x-1">
+            <Star className="h-4 w-4 text-gray-300" />
+            <span className="text-sm text-muted-foreground">No reviews yet</span>
+          </div>
+        )}
 
         {/* Price */}
         <div className="flex items-baseline space-x-2">

@@ -4,12 +4,15 @@ import com.shop.product_service.category.model.CategoryModel;
 import com.shop.product_service.category.repository.CategoryRepository;
 import com.shop.product_service.product.dto.ProductDto;
 import com.shop.product_service.product.dto.response.ProductDtoResponse;
+import com.shop.product_service.product.dto.response.ProductPageableResponse;
 import com.shop.product_service.product.model.ProductModel;
 import com.shop.product_service.product.populator.ProductPopulator;
 import com.shop.product_service.product.repository.ProductRepository;
 import com.shop.product_service.product.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
@@ -181,5 +184,16 @@ public class ProductServiceImpl implements ProductService {
             log.error("Failed to delete product with code {}", code, ex);
             throw new RuntimeException("Failed to delete product", ex);
         }
+    }
+
+
+    @Override
+    public ProductPageableResponse getPageableProducts(Pageable pageable) {
+        Page<ProductModel> productModelPage = productRepository.findAll(pageable);
+        return ProductPageableResponse.builder()
+                .currentPage(productModelPage.getNumber())
+                .totalPage(productModelPage.getTotalPages())
+                .products(productModelPage.stream().map(productMapper::toDtoResponse).toList())
+                .build();
     }
 }

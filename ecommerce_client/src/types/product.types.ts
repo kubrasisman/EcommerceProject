@@ -1,47 +1,54 @@
+import type { Category } from './category.types'
+
 export interface Product {
-  id: string
+  id: number
+  code: number
   name: string
+  title: string
   description: string
+  brand: string
   price: number
+  imageUrl: string
+  categoryCodes: Category[]
+  // Computed/UI fields (not from backend)
+  thumbnail?: string
+  images?: string[]
+  rating?: number
+  reviewCount?: number
+  stock?: number
   originalPrice?: number
   discount?: number
-  category: string
-  subcategory?: string
-  brand?: string
-  images: string[]
-  thumbnail: string
-  stock: number
-  rating: number
-  reviewCount: number
+  slug?: string
   tags?: string[]
   specifications?: Record<string, string>
-  createdAt: string
-  updatedAt: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface ProductFilter {
   category?: string
-  subcategory?: string
   brand?: string
   minPrice?: number
   maxPrice?: number
-  rating?: number
-  inStock?: boolean
-  tags?: string[]
   search?: string
 }
 
 export interface ProductSort {
-  field: 'price' | 'rating' | 'createdAt' | 'name'
-  order: 'asc' | 'desc'
+  sort: string // 'id' | 'name' | 'price' etc.
+  order: 'ASC' | 'DESC'
+}
+
+export interface ProductQueryParams {
+  page?: number
+  limit?: number
+  order?: 'ASC' | 'DESC'
+  sort?: string
 }
 
 export interface ProductListResponse {
   products: Product[]
-  total: number
-  page: number
-  pageSize: number
-  totalPages: number
+  currentPage: number
+  totalPage: number
 }
 
 export interface Review {
@@ -56,4 +63,3 @@ export interface Review {
   createdAt: string
   updatedAt: string
 }
-

@@ -91,7 +91,6 @@ export function CreateCategoryModal({
             <Input
               id="code"
               name="code"
-              type="number"
               placeholder="örn. 1001"
               value={formData.code ?? ""}
               onChange={handleChange}
