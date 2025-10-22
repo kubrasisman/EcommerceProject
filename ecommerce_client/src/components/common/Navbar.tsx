@@ -22,7 +22,7 @@ export default function Navbar() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
 
-  const { user } = useAppSelector((state) => state.auth)
+  const { user, accessToken } = useAppSelector((state) => state.auth)
   const { items } = useAppSelector((state) => state.cart)
   const { products, categories } = useAppSelector((state) => state.products)
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
@@ -233,15 +233,15 @@ export default function Navbar() {
               <div className="flex items-center gap-2">
                 {/* Account Dropdown */}
                 <div className="hidden md:block relative">
-                  {user ? (
+                  {accessToken ? (
                     <>
                       <button
                         onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                         className="flex flex-col items-start hover:outline hover:outline-1 hover:outline-white px-2 py-1 rounded"
                       >
-                        <div className="text-xs">Merhaba, {user.fullName.split(' ')[0]}</div>
+                        <div className="text-xs">Merhaba, Musap OCAK</div>
                         <div className="text-sm font-bold flex items-center gap-1">
-                          Hesap & Listeler
+                          Hesabımı Yönet
                           <ChevronDown className="h-3 w-3" />
                         </div>
                       </button>
@@ -401,9 +401,9 @@ export default function Navbar() {
             <div className="container mx-auto px-4 py-4">
               <div className="space-y-1">
                 {/* User Info */}
-                {user ? (
+                {accessToken ? (
                   <div className="pb-3 mb-3 border-b">
-                    <div className="font-bold">Merhaba, {user.fullName}</div>
+                    <div className="font-bold">Merhaba, Musap OCAK</div>
                     <Link to="/profile" className="text-sm text-blue-600" onClick={() => setIsMenuOpen(false)}>
                       Hesabı Yönet
                     </Link>
