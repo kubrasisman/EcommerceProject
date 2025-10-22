@@ -5,14 +5,16 @@ import { authService } from '@/services/authService'
 
 interface AuthState {
   user: User | null
-  token: string | null
+  accessToken: string | null
+  refreshToken: string | null
   loading: LoadingState
   error: string | null
 }
 
 const initialState: AuthState = {
   user: null,
-  token: localStorage.getItem('token'),
+  accessToken: localStorage.getItem('accessToken'),
+  refreshToken: localStorage.getItem('refreshToken'),
   loading: 'idle',
   error: null,
 }
@@ -56,14 +58,22 @@ const authSlice = createSlice({
     clearError: (state) => {
       state.error = null
     },
-    setToken: (state, action) => {
-      state.token = action.payload
-      localStorage.setItem('token', action.payload)
+    setTokens: (state, action) => {
+      state.accessToken = action.payload.accessToken
+      state.refreshToken = action.payload.refreshToken
+      localStorage.setItem('accessToken', action.payload.accessToken)
+      localStorage.setItem('refreshToken', action.payload.refreshToken)
+      if (action.payload.customerId) {
+        localStorage.setItem('customerId', action.payload.customerId)
+      }
     },
     clearAuth: (state) => {
       state.user = null
-      state.token = null
-      localStorage.removeItem('token')
+      state.accessToken = null
+      state.refreshToken = null
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('customerId')
     },
   },
   extraReducers: (builder) => {
@@ -75,8 +85,13 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = 'succeeded'
-        state.user = action.payload.user
-        state.token = action.payload.token
+        state.user = {
+          customerId: action.payload.customerId,
+          email: action.payload.email,
+          fullName: action.payload.fullName,
+        }
+        state.accessToken = action.payload.accessToken
+        state.refreshToken = action.payload.refreshToken
         state.error = null
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -91,8 +106,13 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = 'succeeded'
-        state.user = action.payload.user
-        state.token = action.payload.token
+        state.user = {
+          customerId: action.payload.customerId,
+          email: action.payload.email,
+          fullName: action.payload.fullName,
+        }
+        state.accessToken = action.payload.accessToken
+        state.refreshToken = action.payload.refreshToken
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = 'failed'
@@ -110,17 +130,21 @@ const authSlice = createSlice({
       .addCase(fetchCurrentUser.rejected, (state) => {
         state.loading = 'failed'
         state.user = null
-        state.token = null
-        localStorage.removeItem('token')
+        state.accessToken = null
+        state.refreshToken = null
+        localStorage.removeItem('accessToken')
+        localStorage.removeItem('refreshToken')
+        localStorage.removeItem('customerId')
       })
 
       // Logout
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null
-        state.token = null
+        state.accessToken = null
+        state.refreshToken = null
       })
   },
 })
 
-export const { clearError, setToken, clearAuth } = authSlice.actions
+export const { clearError, setTokens, clearAuth } = authSlice.actions
 export default authSlice.reducer

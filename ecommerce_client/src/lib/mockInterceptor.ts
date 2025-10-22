@@ -1,7 +1,7 @@
 import type { AxiosInstance } from 'axios'
 import { mockProducts, getMockProducts, searchMockProducts, getMockProductByCode } from './mockData'
 import { generateOrderNumber, generateId } from './helpers'
-import type { Cart, CartItem } from '@/types/cart.types'
+import type { CartData, CartEntryData } from '@/types/cart.types'
 import type { Order } from '@/types/order.types'
 import type { Category } from '@/types/category.types'
 
@@ -17,7 +17,8 @@ const mockCategories: Category[] = [
 
 // In-memory storage for mock data
 const storage = {
-  cart: null as Cart | null,
+  cart: null as CartData | null,
+  cartEntries: [] as CartEntryData[],
   orders: [] as Order[],
 }
 
@@ -208,21 +209,20 @@ export function setupMockInterceptor(apiInstance: AxiosInstance, useMock = true)
         throw { response: mockResponse, config: { ...config, adapter: () => Promise.resolve(mockResponse) } }
       }
 
-      // CART ENDPOINTS
+      // CART ENDPOINTS (Backend API uyumlu)
       
       // GET /cart - Get user's cart
       if (method === 'GET' && url.endsWith('/cart')) {
         if (!storage.cart) {
           storage.cart = {
-            id: generateId(),
-            userId: 'user1',
-            items: [],
-            subtotal: 0,
-            tax: 0,
-            shipping: 0,
-            total: 0,
-            updatedAt: new Date().toISOString(),
+            id: Math.floor(Math.random() * 1000),
+            code: `CART-${generateId()}`,
+            totalPrice: 0,
+            customerEmail: 'user@example.com',
+            creationDate: new Date().toISOString(),
+            entries: [],
           }
+          storage.cartEntries = []
         }
         
         const mockResponse = {
@@ -235,54 +235,48 @@ export function setupMockInterceptor(apiInstance: AxiosInstance, useMock = true)
         throw { response: mockResponse, config: { ...config, adapter: () => Promise.resolve(mockResponse) } }
       }
 
-      // POST /cart/items - Add item to cart
-      if (method === 'POST' && url.includes('/cart/items')) {
-        const { productId, quantity, selectedSize, selectedColor } = config.data
-        const product = getMockProductByCode(parseInt(productId))
+      // POST /cart/add - Add item to cart
+      if (method === 'POST' && url.includes('/cart/add')) {
+        const { product: productCode, quantity } = config.data
+        const product = getMockProductByCode(productCode)
         
         if (product) {
           if (!storage.cart) {
             storage.cart = {
-              id: generateId(),
-              userId: 'user1',
-              items: [],
-              subtotal: 0,
-              tax: 0,
-              shipping: 0,
-              total: 0,
-              updatedAt: new Date().toISOString(),
+              id: Math.floor(Math.random() * 1000),
+              code: `CART-${generateId()}`,
+              totalPrice: 0,
+              customerEmail: 'user@example.com',
+              creationDate: new Date().toISOString(),
+              entries: [],
             }
+            storage.cartEntries = []
           }
 
-          const existingItem = storage.cart.items.find(
-            item => item.product.code === product.code && 
-                   item.selectedSize === selectedSize && 
-                   item.selectedColor === selectedColor
+          const existingEntry = storage.cartEntries.find(
+            entry => entry.product.code === product.code
           )
 
-          if (existingItem) {
-            existingItem.quantity += quantity
+          if (existingEntry) {
+            existingEntry.quantity += quantity
+            existingEntry.totalPrice = existingEntry.basePrice * existingEntry.quantity
           } else {
-            const newItem: CartItem = {
-              id: generateId(),
+            const newEntry: CartEntryData = {
+              code: `ENTRY-${generateId()}`,
               product,
               quantity,
-              selectedSize,
-              selectedColor,
-              addedAt: new Date().toISOString(),
+              basePrice: product.price,
+              totalPrice: product.price * quantity,
             }
-            storage.cart.items.push(newItem)
+            storage.cartEntries.push(newEntry)
           }
 
-          // Recalculate totals
-          storage.cart.subtotal = storage.cart.items.reduce(
-            (sum, item) => sum + item.product.price * item.quantity,
+          // Update cart
+          storage.cart.entries = storage.cartEntries
+          storage.cart.totalPrice = storage.cartEntries.reduce(
+            (sum, entry) => sum + entry.totalPrice,
             0
           )
-          storage.cart.tax = storage.cart.subtotal * 0.1
-          storage.cart.shipping = storage.cart.subtotal > 100 ? 0 : 10
-          storage.cart.total = storage.cart.subtotal + storage.cart.tax + storage.cart.shipping
-          storage.cart.updatedAt = new Date().toISOString()
         }
 
         const mockResponse = {
@@ -295,26 +289,23 @@ export function setupMockInterceptor(apiInstance: AxiosInstance, useMock = true)
         throw { response: mockResponse, config: { ...config, adapter: () => Promise.resolve(mockResponse) } }
       }
 
-      // PUT /cart/items/{id} - Update cart item
-      if (method === 'PUT' && url.includes('/cart/items/')) {
-        const itemId = url.split('/').pop()
-        const { quantity } = config.data
+      // PUT /cart/update - Update cart item
+      if (method === 'PUT' && url.includes('/cart/update')) {
+        const { code: entryCode, quantity } = config.data
 
         if (storage.cart) {
-          const item = storage.cart.items.find(i => i.id === itemId)
-          if (item) {
-            item.quantity = quantity
+          const entry = storage.cartEntries.find(e => e.code === entryCode)
+          if (entry) {
+            entry.quantity = quantity
+            entry.totalPrice = entry.basePrice * quantity
           }
 
-          // Recalculate totals
-          storage.cart.subtotal = storage.cart.items.reduce(
-            (sum, item) => sum + item.product.price * item.quantity,
+          // Update cart
+          storage.cart.entries = storage.cartEntries
+          storage.cart.totalPrice = storage.cartEntries.reduce(
+            (sum, entry) => sum + entry.totalPrice,
             0
           )
-          storage.cart.tax = storage.cart.subtotal * 0.1
-          storage.cart.shipping = storage.cart.subtotal > 100 ? 0 : 10
-          storage.cart.total = storage.cart.subtotal + storage.cart.tax + storage.cart.shipping
-          storage.cart.updatedAt = new Date().toISOString()
         }
 
         const mockResponse = {
@@ -327,22 +318,19 @@ export function setupMockInterceptor(apiInstance: AxiosInstance, useMock = true)
         throw { response: mockResponse, config: { ...config, adapter: () => Promise.resolve(mockResponse) } }
       }
 
-      // DELETE /cart/items/{id} - Remove item from cart
-      if (method === 'DELETE' && url.includes('/cart/items/')) {
-        const itemId = url.split('/').pop()
+      // DELETE /cart/remove/{entry} - Remove item from cart
+      if (method === 'DELETE' && url.includes('/cart/remove/')) {
+        const entryCode = url.split('/').pop()
 
         if (storage.cart) {
-          storage.cart.items = storage.cart.items.filter(i => i.id !== itemId)
+          storage.cartEntries = storage.cartEntries.filter(e => e.code !== entryCode)
 
-          // Recalculate totals
-          storage.cart.subtotal = storage.cart.items.reduce(
-            (sum, item) => sum + item.product.price * item.quantity,
+          // Update cart
+          storage.cart.entries = storage.cartEntries
+          storage.cart.totalPrice = storage.cartEntries.reduce(
+            (sum, entry) => sum + entry.totalPrice,
             0
           )
-          storage.cart.tax = storage.cart.subtotal * 0.1
-          storage.cart.shipping = storage.cart.subtotal > 100 ? 0 : 10
-          storage.cart.total = storage.cart.subtotal + storage.cart.tax + storage.cart.shipping
-          storage.cart.updatedAt = new Date().toISOString()
         }
 
         const mockResponse = {
@@ -358,15 +346,14 @@ export function setupMockInterceptor(apiInstance: AxiosInstance, useMock = true)
       // DELETE /cart - Clear cart
       if (method === 'DELETE' && url.endsWith('/cart')) {
         storage.cart = {
-          id: generateId(),
-          userId: 'user1',
-          items: [],
-          subtotal: 0,
-          tax: 0,
-          shipping: 0,
-          total: 0,
-          updatedAt: new Date().toISOString(),
+          id: Math.floor(Math.random() * 1000),
+          code: `CART-${generateId()}`,
+          totalPrice: 0,
+          customerEmail: 'user@example.com',
+          creationDate: new Date().toISOString(),
+          entries: [],
         }
+        storage.cartEntries = []
 
         const mockResponse = {
           data: null,
@@ -383,24 +370,24 @@ export function setupMockInterceptor(apiInstance: AxiosInstance, useMock = true)
       // POST /orders - Create order
       if (method === 'POST' && url.endsWith('/orders')) {
         const orderData = config.data
+        const cartTotalPrice = storage.cart?.totalPrice || 0
+        
         const newOrder: Order = {
           id: generateId(),
           userId: 'user1',
           orderNumber: generateOrderNumber(),
-          items: orderData.items.map((item: CartItem) => ({
+          items: storage.cartEntries.map((entry: CartEntryData) => ({
             id: generateId(),
-            productId: item.product.code.toString(),
-            productName: item.product.name,
-            productImage: item.product.imageUrl,
-            quantity: item.quantity,
-            price: item.product.price,
-            selectedSize: item.selectedSize,
-            selectedColor: item.selectedColor,
+            productId: entry.product.code.toString(),
+            productName: entry.product.name,
+            productImage: entry.product.imageUrl,
+            quantity: entry.quantity,
+            price: entry.basePrice,
           })),
-          subtotal: storage.cart?.subtotal || 0,
-          tax: storage.cart?.tax || 0,
-          shipping: storage.cart?.shipping || 0,
-          total: storage.cart?.total || 0,
+          subtotal: cartTotalPrice,
+          tax: 0,
+          shipping: 0,
+          total: cartTotalPrice,
           status: 'pending',
           paymentStatus: 'pending',
           paymentMethod: orderData.paymentMethod,
@@ -415,15 +402,14 @@ export function setupMockInterceptor(apiInstance: AxiosInstance, useMock = true)
         
         // Clear cart after order
         storage.cart = {
-          id: generateId(),
-          userId: 'user1',
-          items: [],
-          subtotal: 0,
-          tax: 0,
-          shipping: 0,
-          total: 0,
-          updatedAt: new Date().toISOString(),
+          id: Math.floor(Math.random() * 1000),
+          code: `CART-${generateId()}`,
+          totalPrice: 0,
+          customerEmail: 'user@example.com',
+          creationDate: new Date().toISOString(),
+          entries: [],
         }
+        storage.cartEntries = []
 
         const mockResponse = {
           data: newOrder,
@@ -477,15 +463,11 @@ export function setupMockInterceptor(apiInstance: AxiosInstance, useMock = true)
       if (method === 'POST' && url.includes('/auth/login')) {
         const mockResponse = {
           data: {
-            token: 'mock-jwt-token',
-            user: {
-              id: 'user1',
-              email: config.data.email,
-              fullName: 'John Doe',
-              phone: '+1234567890',
-              role: 'customer',
-              createdAt: new Date().toISOString(),
-            },
+            accessToken: 'mock-jwt-access-token',
+            refreshToken: 'mock-jwt-refresh-token',
+            customerId: 'customer-123',
+            email: config.data.email,
+            fullName: 'John Doe',
           },
           status: 200,
           statusText: 'OK',
@@ -499,16 +481,42 @@ export function setupMockInterceptor(apiInstance: AxiosInstance, useMock = true)
       if (method === 'POST' && url.includes('/auth/register')) {
         const mockResponse = {
           data: {
-            token: 'mock-jwt-token',
-            user: {
-              id: generateId(),
-              email: config.data.email,
-              fullName: config.data.fullName,
-              phone: config.data.phone,
-              role: 'customer',
-              createdAt: new Date().toISOString(),
-            },
+            accessToken: 'mock-jwt-access-token',
+            refreshToken: 'mock-jwt-refresh-token',
+            customerId: generateId(),
+            email: config.data.email,
+            fullName: config.data.fullName,
           },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config,
+        }
+        throw { response: mockResponse, config: { ...config, adapter: () => Promise.resolve(mockResponse) } }
+      }
+
+      // POST /auth/refresh - Refresh Token
+      if (method === 'POST' && url.includes('/auth/refresh')) {
+        const mockResponse = {
+          data: {
+            accessToken: 'mock-jwt-access-token-new',
+            refreshToken: 'mock-jwt-refresh-token-new',
+            customerId: 'customer-123',
+            email: 'user@example.com',
+            fullName: 'John Doe',
+          },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config,
+        }
+        throw { response: mockResponse, config: { ...config, adapter: () => Promise.resolve(mockResponse) } }
+      }
+
+      // POST /auth/logout - Logout
+      if (method === 'POST' && url.includes('/auth/logout')) {
+        const mockResponse = {
+          data: {},
           status: 200,
           statusText: 'OK',
           headers: {},
@@ -521,11 +529,10 @@ export function setupMockInterceptor(apiInstance: AxiosInstance, useMock = true)
       if (method === 'GET' && url.includes('/auth/me')) {
         const mockResponse = {
           data: {
-            id: 'user1',
+            customerId: 'customer-123',
             email: 'user@example.com',
             fullName: 'John Doe',
             phone: '+1234567890',
-            role: 'customer',
             createdAt: new Date().toISOString(),
           },
           status: 200,

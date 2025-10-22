@@ -18,7 +18,7 @@ export default function Checkout() {
   const navigate = useNavigate()
   const dispatch = useAppDispatch()
   const { addToast } = useToast()
-  const { items, subtotal, tax, shipping, total } = useAppSelector((state) => state.cart)
+  const { items, subtotal,total } = useAppSelector((state) => state.cart)
   const { loading } = useAppSelector((state) => state.orders)
 
   const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
@@ -249,14 +249,7 @@ export default function Checkout() {
                       <span>Subtotal</span>
                       <span>${subtotal.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Tax</span>
-                      <span>${tax.toFixed(2)}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Shipping</span>
-                      <span>{shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}</span>
-                    </div>
+
                     <div className="flex justify-between text-lg font-bold pt-2 border-t">
                       <span>Total</span>
                       <span>${total.toFixed(2)}</span>

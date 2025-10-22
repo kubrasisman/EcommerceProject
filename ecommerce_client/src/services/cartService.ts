@@ -1,41 +1,43 @@
 import api from '@/lib/api'
-import type { Cart, AddToCartPayload, UpdateCartItemPayload } from '@/types/cart.types'
+import type { CartData, AddToCartPayload, UpdateCartItemPayload, CartEntryDto } from '@/types/cart.types'
 
 export const cartService = {
   // Get user's cart
-  getCart: async (): Promise<Cart> => {
-    const response = await api.get<Cart>('/cart')
+  getCart: async (): Promise<CartData> => {
+    const response = await api.get<CartData>('/cart')
     return response.data
   },
 
   // Add item to cart
-  addToCart: async (payload: AddToCartPayload): Promise<Cart> => {
-    const response = await api.post<Cart>('/cart/items', payload)
+  addToCart: async (payload: AddToCartPayload): Promise<CartData> => {
+    const cartEntryDto: CartEntryDto = {
+      product: payload.product,
+      quantity: payload.quantity,
+    }
+    const response = await api.post<CartData>('/cart/add', cartEntryDto)
     return response.data
   },
 
   // Update cart item quantity
-  updateCartItem: async (payload: UpdateCartItemPayload): Promise<Cart> => {
-    const { cartItemId, ...data } = payload
-    const response = await api.put<Cart>(`/cart/items/${cartItemId}`, data)
+  updateCartItem: async (payload: UpdateCartItemPayload): Promise<CartData> => {
+    const cartEntryDto: CartEntryDto = {
+      code: payload.code,
+      product: payload.product,
+      quantity: payload.quantity,
+    }
+    const response = await api.put<CartData>('/cart/update', cartEntryDto)
     return response.data
   },
 
   // Remove item from cart
-  removeFromCart: async (cartItemId: string): Promise<Cart> => {
-    const response = await api.delete<Cart>(`/cart/items/${cartItemId}`)
+  removeFromCart: async (entryCode: string): Promise<CartData> => {
+    const response = await api.delete<CartData>(`/cart/remove/${entryCode}`)
     return response.data
   },
 
-  // Clear cart
+  // Clear cart (if needed)
   clearCart: async (): Promise<void> => {
     await api.delete('/cart')
-  },
-
-  // Sync local cart with server
-  syncCart: async (localCartItems: AddToCartPayload[]): Promise<Cart> => {
-    const response = await api.post<Cart>('/cart/sync', { items: localCartItems })
-    return response.data
   },
 }
 

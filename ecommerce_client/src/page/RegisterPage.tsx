@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/store'
 import { registerUser } from '@/store/slices/authSlice'
+import { fetchCart } from '@/store/slices/cartSlice'
 import Layout from '@/components/common/Layout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,10 +22,15 @@ export default function RegisterPage() {
     email: '',
     password: '',
     confirmPassword: '',
+    kvkkConsent: false,
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value })
+    const { name, value, type, checked } = e.target
+    setFormData({ 
+      ...formData, 
+      [name]: type === 'checkbox' ? checked : value 
+    })
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,8 +38,17 @@ export default function RegisterPage() {
 
     if (formData.password !== formData.confirmPassword) {
       addToast({
-        title: 'Error',
-        description: 'Passwords do not match',
+        title: 'Hata',
+        description: 'Şifreler eşleşmiyor',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    if (!formData.kvkkConsent) {
+      addToast({
+        title: 'Hata',
+        description: 'Kullanım koşullarını kabul etmelisiniz',
         variant: 'destructive',
       })
       return
@@ -44,18 +59,22 @@ export default function RegisterPage() {
         fullName: formData.fullName,
         email: formData.email,
         password: formData.password,
+        kvkkConsent: formData.kvkkConsent,
       })).unwrap()
       
+      // Yeni kullanıcının sepetini oluştur/yükle
+      dispatch(fetchCart())
+      
       addToast({
-        title: 'Registration successful',
-        description: 'Welcome to ShopHub!',
+        title: 'Kayıt Başarılı',
+        description: 'ShopHub\'a hoş geldiniz!',
         variant: 'success',
       })
       navigate('/')
     } catch (err) {
       addToast({
-        title: 'Registration failed',
-        description: error || 'Something went wrong',
+        title: 'Kayıt Başarısız',
+        description: error || 'Bir şeyler yanlış gitti',
         variant: 'destructive',
       })
     }
@@ -67,20 +86,20 @@ export default function RegisterPage() {
         <div className="max-w-md mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">Create an Account</CardTitle>
+              <CardTitle className="text-2xl">Hesap Oluştur</CardTitle>
               <CardDescription>
-                Join ShopHub and start shopping today
+                ShopHub'a katılın ve bugün alışverişe başlayın
               </CardDescription>
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <Label htmlFor="fullName">Full Name</Label>
+                  <Label htmlFor="fullName">Ad Soyad</Label>
                   <Input
                     id="fullName"
                     name="fullName"
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Ahmet Yılmaz"
                     value={formData.fullName}
                     onChange={handleChange}
                     required
@@ -93,7 +112,7 @@ export default function RegisterPage() {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder="email@ornek.com"
                     value={formData.email}
                     onChange={handleChange}
                     required
@@ -101,7 +120,7 @@ export default function RegisterPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Şifre</Label>
                   <Input
                     id="password"
                     name="password"
@@ -112,10 +131,11 @@ export default function RegisterPage() {
                     required
                     minLength={6}
                   />
+                  <p className="text-xs text-muted-foreground mt-1">En az 6 karakter olmalıdır</p>
                 </div>
 
                 <div>
-                  <Label htmlFor="confirmPassword">Confirm Password</Label>
+                  <Label htmlFor="confirmPassword">Şifre Tekrar</Label>
                   <Input
                     id="confirmPassword"
                     name="confirmPassword"
@@ -129,35 +149,42 @@ export default function RegisterPage() {
                 </div>
 
                 <div className="flex items-start space-x-2">
-                  <input type="checkbox" required className="mt-1 rounded" />
-                  <span className="text-sm text-muted-foreground">
-                    I agree to the{' '}
+                  <input 
+                    type="checkbox" 
+                    id="kvkkConsent"
+                    name="kvkkConsent"
+                    required 
+                    className="mt-1 rounded" 
+                    checked={formData.kvkkConsent} 
+                    onChange={handleChange} 
+                  />
+                  <label htmlFor="kvkkConsent" className="text-sm text-muted-foreground cursor-pointer">
                     <Link to="/terms" className="text-primary hover:underline">
-                      Terms of Service
+                      Kullanım Koşulları
                     </Link>{' '}
-                    and{' '}
+                    ve{' '}
                     <Link to="/privacy" className="text-primary hover:underline">
-                      Privacy Policy
-                    </Link>
-                  </span>
+                      Gizlilik Politikası
+                    </Link>'nı kabul ediyorum
+                  </label>
                 </div>
 
                 <Button type="submit" className="w-full" disabled={loading === 'loading'}>
-                  {loading === 'loading' ? 'Creating account...' : 'Create Account'}
+                  {loading === 'loading' ? 'Hesap oluşturuluyor...' : 'Hesap Oluştur'}
                 </Button>
               </form>
 
               <div className="mt-6 text-center text-sm">
-                <span className="text-muted-foreground">Already have an account? </span>
+                <span className="text-muted-foreground">Zaten hesabınız var mı? </span>
                 <Link to="/login" className="text-primary hover:underline font-semibold">
-                  Sign in
+                  Giriş Yap
                 </Link>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {loading === 'loading' && <Loader fullScreen text="Creating your account..." />}
+        {loading === 'loading' && <Loader fullScreen text="Hesabınız oluşturuluyor..." />}
       </div>
     </Layout>
   )

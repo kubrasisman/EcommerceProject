@@ -1,6 +1,7 @@
 package com.shop.order_service.order.dto;
 
 import com.shop.order_service.address.dto.AddressData;
+import com.shop.order_service.order.type.OrderStatus;
 import com.shop.order_service.payment.dto.PaymentTransactionData;
 import lombok.Data;
 import lombok.Getter;
@@ -22,5 +23,5 @@ public class OrderData {
     private AddressData address;
     private PaymentTransactionData payment;
     private List<OrderEntryData> entries;
-    private String status; //todo make it enum
+    private OrderStatus status;
 }

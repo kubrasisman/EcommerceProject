@@ -4,6 +4,7 @@ import com.shop.customer_service.dto.*;
 import com.shop.customer_service.model.CustomerModel;
 import com.shop.customer_service.repository.CustomerRepository;
 import com.shop.customer_service.util.JwtUtil;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 @Service
+@RequiredArgsConstructor
 public class AuthService {
 
     private final CustomerRepository customerRepository;
@@ -21,16 +23,6 @@ public class AuthService {
 
     private static final String REFRESH_TOKEN_PREFIX = "refresh_token:";
     private static final long REFRESH_TOKEN_VALIDITY_DAYS = 7;
-
-    public AuthService(CustomerRepository customerRepository,
-                       PasswordEncoder passwordEncoder,
-                       JwtUtil jwtUtil,
-                       RedisTemplate<String, Object> redisTemplate) {
-        this.customerRepository = customerRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.jwtUtil = jwtUtil;
-        this.redisTemplate = redisTemplate;
-    }
 
     public AuthResponse register(RegisterRequest request) {
         Optional<CustomerModel> existingCustomer = customerRepository.findByEmail(request.getEmail());
