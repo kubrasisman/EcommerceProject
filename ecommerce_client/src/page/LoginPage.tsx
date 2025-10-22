@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/store'
 import { loginUser } from '@/store/slices/authSlice'
+import { fetchCart } from '@/store/slices/cartSlice'
 import Layout from '@/components/common/Layout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,16 +31,18 @@ export default function LoginPage() {
     
     try {
       await dispatch(loginUser(formData)).unwrap()
+      // Kullanıcının sepetini yükle
+      dispatch(fetchCart())
       addToast({
-        title: 'Login successful',
-        description: 'Welcome back!',
+        title: 'Giriş Başarılı',
+        description: 'Hoş geldiniz!',
         variant: 'success',
       })
       navigate('/')
     } catch (err) {
       addToast({
-        title: 'Login failed',
-        description: error || 'Invalid email or password',
+        title: 'Giriş Başarısız',
+        description: error || 'Geçersiz email veya şifre',
         variant: 'destructive',
       })
     }
@@ -51,9 +54,9 @@ export default function LoginPage() {
         <div className="max-w-md mx-auto">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl">Welcome Back</CardTitle>
+              <CardTitle className="text-2xl">Hoş Geldiniz</CardTitle>
               <CardDescription>
-                Sign in to your account to continue shopping
+                Alışverişe devam etmek için hesabınıza giriş yapın
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -64,7 +67,7 @@ export default function LoginPage() {
                     id="email"
                     name="email"
                     type="email"
-                    placeholder="you@example.com"
+                    placeholder="email@ornek.com"
                     value={formData.email}
                     onChange={handleChange}
                     required
@@ -72,7 +75,7 @@ export default function LoginPage() {
                 </div>
 
                 <div>
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password">Şifre</Label>
                   <Input
                     id="password"
                     name="password"
@@ -87,29 +90,29 @@ export default function LoginPage() {
                 <div className="flex items-center justify-between">
                   <label className="flex items-center space-x-2">
                     <input type="checkbox" className="rounded" />
-                    <span className="text-sm">Remember me</span>
+                    <span className="text-sm">Beni hatırla</span>
                   </label>
                   <Link to="/forgot-password" className="text-sm text-primary hover:underline">
-                    Forgot password?
+                    Şifremi unuttum
                   </Link>
                 </div>
 
                 <Button type="submit" className="w-full" disabled={loading === 'loading'}>
-                  {loading === 'loading' ? 'Signing in...' : 'Sign In'}
+                  {loading === 'loading' ? 'Giriş yapılıyor...' : 'Giriş Yap'}
                 </Button>
               </form>
 
               <div className="mt-6 text-center text-sm">
-                <span className="text-muted-foreground">Don't have an account? </span>
+                <span className="text-muted-foreground">Hesabınız yok mu? </span>
                 <Link to="/register" className="text-primary hover:underline font-semibold">
-                  Sign up
+                  Kayıt Ol
                 </Link>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {loading === 'loading' && <Loader fullScreen text="Signing in..." />}
+        {loading === 'loading' && <Loader fullScreen text="Giriş yapılıyor..." />}
       </div>
     </Layout>
   )

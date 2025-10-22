@@ -50,11 +50,6 @@ export default function ProductCard({ product }: ProductCardProps) {
             -{discountPercentage}%
           </Badge>
         )}
-        {product.stock === 0 && (
-          <Badge className="absolute top-2 right-2" variant="secondary">
-            Out of Stock
-          </Badge>
-        )}
       </div>
 
       {/* Content */}
@@ -94,12 +89,11 @@ export default function ProductCard({ product }: ProductCardProps) {
         {/* Add to Cart Button */}
         <Button
           onClick={handleAddToCart}
-          disabled={product.stock === 0}
           className="w-full"
           size="sm"
         >
           <ShoppingCart className="h-4 w-4 mr-2" />
-          {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+          Add to Cart
         </Button>
       </div>
     </Link>

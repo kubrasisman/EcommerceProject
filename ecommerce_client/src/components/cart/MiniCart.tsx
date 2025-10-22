@@ -28,7 +28,7 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
         <div className="flex h-full flex-col">
           {/* Header */}
           <div className="flex items-center justify-between border-b p-4">
-            <h2 className="text-lg font-semibold">Shopping Cart</h2>
+            <h2 className="text-lg font-semibold">Alışveriş Sepeti</h2>
             <button
               onClick={onClose}
               className="rounded-md p-2 hover:bg-accent"
@@ -42,9 +42,9 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
             <div className="flex-1 flex items-center justify-center">
               <EmptyState
                 icon={ShoppingBag}
-                title="Your cart is empty"
-                description="Add some products to get started"
-                actionLabel="Continue Shopping"
+                title="Sepetiniz boş"
+                description="Alışverişe başlamak için ürün ekleyin"
+                actionLabel="Alışverişe Başla"
                 onAction={onClose}
               />
             </div>
@@ -61,18 +61,18 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
               {/* Footer */}
               <div className="border-t p-4 space-y-4">
                 <div className="flex justify-between text-lg font-semibold">
-                  <span>Total:</span>
+                  <span>Toplam:</span>
                   <span>${total.toFixed(2)}</span>
                 </div>
                 <div className="space-y-2">
                   <Link to="/cart" onClick={onClose}>
                     <Button variant="outline" className="w-full">
-                      View Cart
+                      Sepeti Görüntüle
                     </Button>
                   </Link>
                   <Link to="/checkout" onClick={onClose}>
                     <Button className="w-full">
-                      Checkout
+                      Ödemeye Geç
                     </Button>
                   </Link>
                 </div>

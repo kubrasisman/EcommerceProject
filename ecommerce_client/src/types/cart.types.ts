@@ -1,38 +1,62 @@
 import type { Product } from './product.types'
 
-export interface CartItem {
-  id: string
+// Backend CartEntryData
+export interface CartEntryData {
+  code: string
   product: Product
   quantity: number
-  selectedSize?: string
-  selectedColor?: string
-  addedAt: string
+  totalPrice: number
+  basePrice: number
 }
 
-export interface Cart {
-  id: string
-  userId: string
-  items: CartItem[]
-  subtotal: number
-  tax: number
-  shipping: number
-  total: number
-  updatedAt: string
+// Backend CartData
+export interface CartData {
+  id: number
+  code: string
+  totalPrice: number
+  customerEmail: string
+  creationDate: string
+  entries: CartEntryData[]
+}
+
+// Request DTOs
+export interface CartEntryDto {
+  cart?: string
+  product: number // Product ID/Code
+  quantity: number
+  code?: string
 }
 
 export interface AddToCartPayload {
-  productId: string
+  product: number
   quantity: number
-  selectedSize?: string
-  selectedColor?: string
 }
 
 export interface UpdateCartItemPayload {
-  cartItemId: string
+  code: string // Entry code
+  product: number
   quantity: number
 }
 
 export interface RemoveFromCartPayload {
-  cartItemId: string
+  entryCode: string
+}
+
+// Legacy support for existing components
+export interface CartItem {
+  id: string
+  code: string
+  product: Product
+  quantity: number
+  addedAt?: string
+}
+
+export interface Cart {
+  id: number
+  code: string
+  items: CartItem[]
+  subtotal: number
+  total: number
+  updatedAt: string
 }
 

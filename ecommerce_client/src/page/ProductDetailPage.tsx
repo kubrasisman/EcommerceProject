@@ -31,10 +31,10 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = () => {
     if (selectedProduct) {
-      dispatch(addToCart({ productId: selectedProduct.code.toString(), quantity }))
+      dispatch(addToCart({ product: selectedProduct.code, quantity }))
       addToast({
-        title: 'Added to cart',
-        description: `${selectedProduct.name} has been added to your cart.`,
+        title: 'Sepete Eklendi',
+        description: `${selectedProduct.name} sepetinize eklendi.`,
         variant: 'success',
         duration: 3000,
       })
@@ -117,9 +117,6 @@ export default function ProductDetailPage() {
                 {discountPercentage > 0 && (
                   <Badge variant="destructive">-{discountPercentage}%</Badge>
                 )}
-                {selectedProduct.stock === 0 && (
-                  <Badge variant="secondary">Out of Stock</Badge>
-                )}
               </div>
               <h1 className="text-3xl font-bold mb-2">{selectedProduct.name}</h1>
               {selectedProduct.title && selectedProduct.title !== selectedProduct.name && (
@@ -151,12 +148,6 @@ export default function ProductDetailPage() {
 
             <p className="text-muted-foreground leading-relaxed">{selectedProduct.description}</p>
 
-            {selectedProduct.stock && selectedProduct.stock > 0 && selectedProduct.stock < 10 && (
-              <p className="text-orange-600 font-medium">
-                Only {selectedProduct.stock} left in stock!
-              </p>
-            )}
-
             {/* Quantity Selector */}
             <div className="flex items-center space-x-4">
               <span className="font-semibold">Quantity:</span>
@@ -173,7 +164,7 @@ export default function ProductDetailPage() {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setQuantity(Math.min(selectedProduct.stock || 999, quantity + 1))}
+                  onClick={() => setQuantity(quantity + 1)}
                   className="h-10 w-10 p-0"
                 >
                   +
@@ -187,10 +178,9 @@ export default function ProductDetailPage() {
                 size="lg"
                 className="flex-1"
                 onClick={handleAddToCart}
-                disabled={selectedProduct.stock === 0}
               >
                 <ShoppingCart className="mr-2 h-5 w-5" />
-                {selectedProduct.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
+                Add to Cart
               </Button>
               <Button size="lg" variant="outline">
                 <Heart className="h-5 w-5" />

@@ -29,6 +29,10 @@ public class JwtUtil {
         return extractClaim(token, claims -> claims.get("customerId", String.class));
     }
 
+    public String extractEmail(String token) {
+        return extractClaim(token, claims -> claims.get("email", String.class));
+    }
+
     public Date extractExpiration(String token) {
         return extractClaim(token, Claims::getExpiration);
     }

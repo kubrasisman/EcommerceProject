@@ -18,17 +18,25 @@ public class AbstractOrderModel {
     private Long id;
     private String code;
     private double totalPrice;
-    private String customerEmail;
+
     @Column(updatable = false)
     private LocalDateTime creationDate;
+    private LocalDateTime updateDate;
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id")
     private AddressModel address; //todo json string dön
-
+    @Column(name = "owner")
+    private String owner;
 
     @PrePersist
     protected void onCreate() {
-        this.creationDate= LocalDateTime.now();
+        this.creationDate = LocalDateTime.now();
+        this.updateDate = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        this.updateDate = LocalDateTime.now();
     }
 
 

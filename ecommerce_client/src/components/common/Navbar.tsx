@@ -1,8 +1,10 @@
 import { Link, useNavigate } from 'react-router-dom'
-import { ShoppingCart, Search, Menu, MapPin, ChevronDown } from 'lucide-react'
+import { ShoppingCart, Search, Menu, MapPin, ChevronDown, User as UserIcon, Package, LogOut } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useAppSelector, useAppDispatch } from '@/store/store'
 import { fetchCategories } from '@/store/slices/productSlice'
+import { logoutUser } from '@/store/slices/authSlice'
+import { clearCartLocal } from '@/store/slices/cartSlice'
 import { Button } from '@/components/ui/button'
 import MiniCart from '@/components/cart/MiniCart'
 import type { Product } from '@/types/product.types'
@@ -12,6 +14,7 @@ export default function Navbar() {
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false)
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [suggestions, setSuggestions] = useState<Product[]>([])
   const [selectedCategory, setSelectedCategory] = useState('All')
@@ -80,9 +83,22 @@ export default function Navbar() {
     setShowSuggestions(false)
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('token')
-    window.location.href = '/login'
+  const handleLogout = async () => {
+    try {
+      await dispatch(logoutUser()).unwrap()
+      // Sepeti temizle
+      dispatch(clearCartLocal())
+      navigate('/login')
+    } catch (error) {
+      console.error('Logout failed:', error)
+      // Force logout even if API call fails
+      localStorage.removeItem('accessToken')
+      localStorage.removeItem('refreshToken')
+      localStorage.removeItem('customerId')
+      // Sepeti temizle
+      dispatch(clearCartLocal())
+      navigate('/login')
+    }
   }
 
   return (
@@ -215,25 +231,80 @@ export default function Navbar() {
 
               {/* Right Section */}
               <div className="flex items-center gap-2">
-                {/* Account */}
-                <Link 
-                  to={user ? '/profile' : '/login'} 
-                  className="hidden md:flex flex-col items-start hover:outline hover:outline-1 hover:outline-white px-2 py-1 rounded"
-                >
-                  <div className="text-xs">Hello, {user ? user.fullName.split(' ')[0] : 'Sign in'}</div>
-                  <div className="text-sm font-bold flex items-center gap-1">
-                    Account & Lists
-                    <ChevronDown className="h-3 w-3" />
-                  </div>
-                </Link>
+                {/* Account Dropdown */}
+                <div className="hidden md:block relative">
+                  {user ? (
+                    <>
+                      <button
+                        onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                        className="flex flex-col items-start hover:outline hover:outline-1 hover:outline-white px-2 py-1 rounded"
+                      >
+                        <div className="text-xs">Merhaba, {user.fullName.split(' ')[0]}</div>
+                        <div className="text-sm font-bold flex items-center gap-1">
+                          Hesap & Listeler
+                          <ChevronDown className="h-3 w-3" />
+                        </div>
+                      </button>
+                      
+                      {isUserMenuOpen && (
+                        <>
+                          <div 
+                            className="fixed inset-0 z-40" 
+                            onClick={() => setIsUserMenuOpen(false)}
+                          />
+                          <div className="absolute top-full right-0 mt-1 w-64 bg-white text-gray-900 shadow-lg rounded-md border border-gray-200 z-50 py-2">
+                            <Link
+                              to="/profile"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100"
+                            >
+                              <UserIcon className="h-5 w-5" />
+                              <span>Profilim</span>
+                            </Link>
+                            <Link
+                              to="/orders"
+                              onClick={() => setIsUserMenuOpen(false)}
+                              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-100"
+                            >
+                              <Package className="h-5 w-5" />
+                              <span>Siparişlerim</span>
+                            </Link>
+                            <div className="border-t my-1" />
+                            <button
+                              onClick={() => {
+                                setIsUserMenuOpen(false)
+                                handleLogout()
+                              }}
+                              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-100 text-red-600"
+                            >
+                              <LogOut className="h-5 w-5" />
+                              <span>Çıkış Yap</span>
+                            </button>
+                          </div>
+                        </>
+                      )}
+                    </>
+                  ) : (
+                    <Link 
+                      to="/login" 
+                      className="flex flex-col items-start hover:outline hover:outline-1 hover:outline-white px-2 py-1 rounded"
+                    >
+                      <div className="text-xs">Merhaba, Giriş Yap</div>
+                      <div className="text-sm font-bold flex items-center gap-1">
+                        Hesap & Listeler
+                        <ChevronDown className="h-3 w-3" />
+                      </div>
+                    </Link>
+                  )}
+                </div>
 
-                {/* Orders */}
+                {/* Orders - Sadece desktop'ta göster */}
                 <Link 
                   to="/orders" 
                   className="hidden lg:flex flex-col items-start hover:outline hover:outline-1 hover:outline-white px-2 py-1 rounded"
                 >
-                  <div className="text-xs">Returns</div>
-                  <div className="text-sm font-bold">& Orders</div>
+                  <div className="text-xs">İadeler</div>
+                  <div className="text-sm font-bold">& Siparişler</div>
                 </Link>
 
                 {/* Cart */}
@@ -332,24 +403,24 @@ export default function Navbar() {
                 {/* User Info */}
                 {user ? (
                   <div className="pb-3 mb-3 border-b">
-                    <div className="font-bold">Hello, {user.fullName}</div>
+                    <div className="font-bold">Merhaba, {user.fullName}</div>
                     <Link to="/profile" className="text-sm text-blue-600" onClick={() => setIsMenuOpen(false)}>
-                      Manage Account
+                      Hesabı Yönet
                     </Link>
                   </div>
                 ) : (
                   <div className="pb-3 mb-3 border-b">
                     <Link to="/login" onClick={() => setIsMenuOpen(false)}>
-                      <Button className="w-full mb-2">Sign In</Button>
+                      <Button className="w-full mb-2">Giriş Yap</Button>
                     </Link>
                     <div className="text-sm">
-                      New customer? <Link to="/register" className="text-blue-600" onClick={() => setIsMenuOpen(false)}>Start here</Link>
+                      Yeni müşteri misiniz? <Link to="/register" className="text-blue-600" onClick={() => setIsMenuOpen(false)}>Buradan başlayın</Link>
                     </div>
                   </div>
                 )}
 
                 {/* Categories */}
-                <div className="font-bold mb-2">Shop by Category</div>
+                <div className="font-bold mb-2">Kategorilere Göre Alışveriş</div>
                 {categories && categories.map((category) => (
                   <Link
                     key={category.code}
@@ -365,9 +436,10 @@ export default function Navbar() {
                   <Link
                     to="/orders"
                     onClick={() => setIsMenuOpen(false)}
-                    className="block py-2 px-3 hover:bg-gray-100 rounded"
+                    className="flex items-center gap-2 py-2 px-3 hover:bg-gray-100 rounded"
                   >
-                    Your Orders
+                    <Package className="h-4 w-4" />
+                    Siparişlerim
                   </Link>
                   {user && (
                     <button
@@ -375,9 +447,10 @@ export default function Navbar() {
                         handleLogout()
                         setIsMenuOpen(false)
                       }}
-                      className="w-full text-left py-2 px-3 hover:bg-gray-100 rounded"
+                      className="w-full flex items-center gap-2 text-left py-2 px-3 hover:bg-gray-100 rounded text-red-600"
                     >
-                      Sign Out
+                      <LogOut className="h-4 w-4" />
+                      Çıkış Yap
                     </button>
                   )}
                 </div>

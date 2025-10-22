@@ -1,16 +1,19 @@
 export interface User {
-  id: string
+  customerId: string
   email: string
   fullName: string
   phone?: string
   avatar?: string
-  createdAt: string
-  updatedAt: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface AuthResponse {
-  token: string
-  user: User
+  accessToken: string
+  refreshToken: string
+  customerId: string
+  email: string
+  fullName: string
 }
 
 export interface LoginCredentials {
@@ -22,7 +25,7 @@ export interface RegisterData {
   fullName: string
   email: string
   password: string
-  phone?: string
+  kvkkConsent: boolean
 }
 
 export interface UpdateProfileData {

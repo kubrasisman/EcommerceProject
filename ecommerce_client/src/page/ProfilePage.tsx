@@ -78,16 +78,18 @@ export default function ProfilePage() {
                     <p className="text-lg">{user.phone}</p>
                   </div>
                 )}
-                <div>
-                  <label className="text-sm font-semibold text-muted-foreground">Member Since</label>
-                  <p className="text-lg">
-                    {new Date(user.createdAt).toLocaleDateString('en-US', {
-                      year: 'numeric',
-                      month: 'long',
-                      day: 'numeric',
-                    })}
-                  </p>
-                </div>
+                {user.createdAt && (
+                  <div>
+                    <label className="text-sm font-semibold text-muted-foreground">Member Since</label>
+                    <p className="text-lg">
+                      {new Date(user.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                )}
                 <Button>Edit Profile</Button>
               </CardContent>
             </Card>

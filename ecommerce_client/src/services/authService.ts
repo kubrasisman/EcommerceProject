@@ -5,8 +5,10 @@ export const authService = {
   // Login
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
     const response = await api.post<AuthResponse>('/auth/login', credentials)
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token)
+    if (response.data.accessToken && response.data.refreshToken) {
+      localStorage.setItem('accessToken', response.data.accessToken)
+      localStorage.setItem('refreshToken', response.data.refreshToken)
+      localStorage.setItem('customerId', response.data.customerId)
     }
     return response.data
   },
@@ -14,16 +16,38 @@ export const authService = {
   // Register
   register: async (data: RegisterData): Promise<AuthResponse> => {
     const response = await api.post<AuthResponse>('/auth/register', data)
-    if (response.data.token) {
-      localStorage.setItem('token', response.data.token)
+    if (response.data.accessToken && response.data.refreshToken) {
+      localStorage.setItem('accessToken', response.data.accessToken)
+      localStorage.setItem('refreshToken', response.data.refreshToken)
+      localStorage.setItem('customerId', response.data.customerId)
+    }
+    return response.data
+  },
+
+  // Refresh Token
+  refreshToken: async (refreshToken: string): Promise<AuthResponse> => {
+    const response = await api.post<AuthResponse>('/auth/refresh', { refreshToken })
+    if (response.data.accessToken && response.data.refreshToken) {
+      localStorage.setItem('accessToken', response.data.accessToken)
+      localStorage.setItem('refreshToken', response.data.refreshToken)
+      localStorage.setItem('customerId', response.data.customerId)
     }
     return response.data
   },
 
   // Logout
   logout: async (): Promise<void> => {
-    localStorage.removeItem('token')
-    await api.post('/auth/logout')
+    const customerId = localStorage.getItem('customerId')
+    if (customerId) {
+      await api.post('/auth/logout', {}, {
+        headers: {
+          'X-Customer-Id': customerId
+        }
+      })
+    }
+    localStorage.removeItem('accessToken')
+    localStorage.removeItem('refreshToken')
+    localStorage.removeItem('customerId')
   },
 
   // Get current user

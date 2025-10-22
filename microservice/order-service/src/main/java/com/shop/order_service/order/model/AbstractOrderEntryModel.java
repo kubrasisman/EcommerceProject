@@ -16,14 +16,16 @@ public abstract class AbstractOrderEntryModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    private Long productCode;
+    private Long product;
+    private String code;
     private Integer quantity;
     private double basePrice;
     private double totalPrice;
-    private Integer entryNumber;
     @Column(updatable = false)
     private LocalDateTime creationDate;
+
+    @Column(name = "owner")
+    private String owner;
 
     @PrePersist
     protected void onCreate() {

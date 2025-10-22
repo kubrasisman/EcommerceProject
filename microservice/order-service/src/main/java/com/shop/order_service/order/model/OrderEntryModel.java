@@ -1,19 +1,21 @@
 package com.shop.order_service.order.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
-@Table(name = "p_orderentries")
+@Table(name = "p_order_entry")
 @Data
-public class OrderEntryModel extends AbstractOrderEntryModel{
+@EqualsAndHashCode(callSuper = true)
+public class OrderEntryModel extends AbstractOrderEntryModel {
     private Integer canceledAmount;
     private Integer shippedAmount;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private OrderModel order;
 }
