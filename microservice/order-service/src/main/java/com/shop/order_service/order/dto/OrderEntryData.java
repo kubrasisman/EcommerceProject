@@ -15,7 +15,6 @@ public class OrderEntryData {
     private Integer quantity;
     private double basePrice;
     private double totalPrice;
-    private Integer entryNumber;
     private Integer canceledAmount;
     private Integer shippedAmount;
     private LocalDateTime creationDate;

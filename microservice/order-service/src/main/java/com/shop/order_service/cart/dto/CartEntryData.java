@@ -11,7 +11,7 @@ public class CartEntryData implements Serializable {
     private Long id;
     private ProductDtoResponse product;
     private Integer quantity;
+    private String code;
     private double basePrice;
     private double totalPrice;
-    private Integer entryNumber;
 }
