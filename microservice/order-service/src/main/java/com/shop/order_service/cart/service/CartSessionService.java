@@ -25,8 +25,8 @@ public class CartSessionService {
         redisTemplate.opsForValue().set(key, cartData, CART_SESSION_TTL_HOURS, TimeUnit.HOURS);
     }
 
-    public CartData getCartSession(String customerId) {
-        String key = CART_SESSION_PREFIX + customerId;
+    public CartData getCartSession(String customerMail) {
+        String key = CART_SESSION_PREFIX + customerMail;
         Object cartData = redisTemplate.opsForValue().get(key);
 
         if (cartData instanceof CartData) {
@@ -34,7 +34,7 @@ public class CartSessionService {
         }
 
         CartData newCart = new CartData();
-        newCart.setCustomerId(Long.parseLong(customerId));
+        newCart.setCustomerEmail(customerMail);
         newCart.setEntries(new ArrayList<>());
         newCart.setTotalPrice(0.0);
         return newCart;
@@ -51,7 +51,7 @@ public class CartSessionService {
 
         boolean found = false;
         for (CartEntryData entry : entries) {
-            if (entry.getProductId().equals(entryData.getProductId())) {
+            if (entry.getProductCode().equals(entryData.getProductCode())) {
                 entry.setQuantity(entry.getQuantity() + entryData.getQuantity());
                 found = true;
                 break;
@@ -70,7 +70,7 @@ public class CartSessionService {
         CartData cart = getCartSession(customerId);
 
         if (cart.getEntries() != null) {
-            cart.getEntries().removeIf(entry -> entry.getProductId().equals(productId));
+            cart.getEntries().removeIf(entry -> entry.getProductCode().equals(productId));
             recalculateTotal(cart);
             saveCartSession(customerId, cart);
         }
@@ -81,7 +81,7 @@ public class CartSessionService {
 
         if (cart.getEntries() != null) {
             for (CartEntryData entry : cart.getEntries()) {
-                if (entry.getProductId().equals(productId)) {
+                if (entry.getProductCode().equals(productId)) {
                     entry.setQuantity(quantity);
                     break;
                 }
@@ -100,7 +100,7 @@ public class CartSessionService {
         double total = 0.0;
         if (cart.getEntries() != null) {
             for (CartEntryData entry : cart.getEntries()) {
-                total += entry.getPrice() * entry.getQuantity();
+                total += entry.getBasePrice() * entry.getQuantity();
             }
         }
         cart.setTotalPrice(total);
