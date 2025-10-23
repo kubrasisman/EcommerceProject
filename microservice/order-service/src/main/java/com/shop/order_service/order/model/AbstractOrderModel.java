@@ -1,12 +1,10 @@
 package com.shop.order_service.order.model;
 
-import com.shop.order_service.address.model.AddressModel;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @MappedSuperclass
 @Getter
@@ -22,9 +20,7 @@ public class AbstractOrderModel {
     @Column(updatable = false)
     private LocalDateTime creationDate;
     private LocalDateTime updateDate;
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "address_id")
-    private AddressModel address; //todo json string dön
+    private Long address;
     @Column(name = "owner")
     private String owner;
 

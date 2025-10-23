@@ -1,9 +1,7 @@
 package com.shop.order_service.cart.controller;
 
-import com.shop.order_service.cart.dto.CartData;
-import com.shop.order_service.cart.dto.CartEntryData;
+import com.shop.order_service.cart.dto.response.CartDtoResponse;
 import com.shop.order_service.cart.dto.request.CartEntryDto;
-import com.shop.order_service.cart.populator.CartPopulator;
 import com.shop.order_service.cart.service.impl.DefaultCartSessionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,30 +15,30 @@ public class CartController {
     private final DefaultCartSessionService cartSessionService;
 
     @GetMapping
-    public ResponseEntity<CartData> getCart() {
-        CartData cart = cartSessionService.getCartSession();
+    public ResponseEntity<CartDtoResponse> getCart() {
+        CartDtoResponse cart = cartSessionService.getCartSession();
         cartSessionService.extendSessionTTL();
         return ResponseEntity.ok(cart);
     }
 
     @PostMapping("/add")
-    public ResponseEntity<CartData> addToCart(@RequestBody CartEntryDto cartEntryDto) {
+    public ResponseEntity<CartDtoResponse> addToCart(@RequestBody CartEntryDto cartEntryDto) {
         cartSessionService.addToCart(cartEntryDto);
-        CartData cart = cartSessionService.getCartSession();
+        CartDtoResponse cart = cartSessionService.getCartSession();
         return ResponseEntity.ok(cart);
     }
 
     @DeleteMapping("/remove/{entry}")
-    public ResponseEntity<CartData> removeFromCart(@PathVariable("entry") String entry) {
+    public ResponseEntity<CartDtoResponse> removeFromCart(@PathVariable("entry") String entry) {
         cartSessionService.removeFromCart(entry);
-        CartData cart = cartSessionService.getCartSession();
+        CartDtoResponse cart = cartSessionService.getCartSession();
         return ResponseEntity.ok(cart);
     }
 
     @PutMapping("/update")
-    public ResponseEntity<CartData> updateQuantity(@RequestBody CartEntryDto cartEntryDto) {
+    public ResponseEntity<CartDtoResponse> updateQuantity(@RequestBody CartEntryDto cartEntryDto) {
         cartSessionService.updateQuantity(cartEntryDto);
-        CartData cart = cartSessionService.getCartSession();
+        CartDtoResponse cart = cartSessionService.getCartSession();
         return ResponseEntity.ok(cart);
     }
 
