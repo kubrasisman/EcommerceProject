@@ -1,5 +1,6 @@
 package com.shop.order_service.cart.service.impl;
 
+import com.shop.order_service.cart.dto.response.CartDtoResponse;
 import com.shop.order_service.cart.dto.request.CartEntryDto;
 import com.shop.order_service.cart.model.CartEntryModel;
 import com.shop.order_service.cart.model.CartModel;
@@ -7,14 +8,10 @@ import com.shop.order_service.cart.populator.CartPopulator;
 import com.shop.order_service.cart.service.CartEntryService;
 import com.shop.order_service.cart.service.CartService;
 import com.shop.order_service.common.utils.UserUtil;
-import com.shop.order_service.cart.dto.CartData;
-import com.shop.order_service.cart.dto.CartEntryData;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -28,21 +25,21 @@ public class DefaultCartSessionService {
     private static final String CART_SESSION_PREFIX = "cart:";
     private static final long CART_SESSION_TTL_HOURS = 24;
 
-    public void saveCartSession(CartData cartData) {
+    public void saveCartSession(CartDtoResponse cartData) {
         String key = CART_SESSION_PREFIX + UserUtil.current();
         redisTemplate.opsForValue().set(key, cartData, CART_SESSION_TTL_HOURS, TimeUnit.HOURS);
     }
 
-    public CartData getCartSession() {
+    public CartDtoResponse getCartSession() {
         String key = CART_SESSION_PREFIX + UserUtil.current();
         Object cartData = redisTemplate.opsForValue().get(key);
 
-        if (cartData instanceof CartData) {
-            return (CartData) cartData;
+        if (cartData instanceof CartDtoResponse) {
+            return (CartDtoResponse) cartData;
         }
 
         CartModel cart = cartService.getCart();
-        CartData data = cartPopulator.toData(cart);
+        CartDtoResponse data = cartPopulator.toData(cart);
         saveCartSession(data);
         return data;
     }
@@ -52,7 +49,7 @@ public class DefaultCartSessionService {
         CartModel cartModel = cartEntryModel.getCart();
         recalculateTotal(cartModel);
         CartModel savedCart = cartService.saveCart(cartModel);
-        CartData data = cartPopulator.toData(savedCart);
+        CartDtoResponse data = cartPopulator.toData(savedCart);
         saveCartSession(data);
     }
 
@@ -61,7 +58,7 @@ public class DefaultCartSessionService {
         CartModel cart = cartService.getCart();
         recalculateTotal(cart);
         CartModel cartModel = cartService.saveCart(cart);
-        CartData cartData = cartPopulator.toData(cartModel);
+        CartDtoResponse cartData = cartPopulator.toData(cartModel);
         saveCartSession(cartData);
     }
 
@@ -70,7 +67,7 @@ public class DefaultCartSessionService {
         CartModel cart = cartEntryModel.getCart();
         recalculateTotal(cart);
         CartModel cartModel = cartService.saveCart(cart);
-        CartData cartData = cartPopulator.toData(cartModel);
+        CartDtoResponse cartData = cartPopulator.toData(cartModel);
         saveCartSession(cartData);
     }
 

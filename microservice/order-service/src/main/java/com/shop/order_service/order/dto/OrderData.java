@@ -1,6 +1,5 @@
 package com.shop.order_service.order.dto;
 
-import com.shop.order_service.address.dto.AddressData;
 import com.shop.order_service.order.type.OrderStatus;
 import com.shop.order_service.payment.dto.PaymentTransactionData;
 import lombok.Data;
@@ -20,7 +19,7 @@ public class OrderData {
     private double totalPrice;
     private String customerEmail;
     private LocalDateTime creationDate;
-    private AddressData address;
+    private Long address;
     private PaymentTransactionData payment;
     private List<OrderEntryData> entries;
     private OrderStatus status;
