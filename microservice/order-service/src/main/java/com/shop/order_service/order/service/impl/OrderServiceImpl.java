@@ -34,26 +34,12 @@ public class OrderServiceImpl implements OrderService {
             throw new IllegalStateException("Cart is empty, cannot place order");
         }
 
-        OrderModel order = new OrderModel();
+        OrderModel order = orderPopulator.cartToOrder(cart);
         order.setCode(generateOrderCode());
-        order.setCustomerEmail(cart.getCustomerEmail());
-        order.setTotalPrice(cart.getTotalPrice());
-        order.setAddress(cart.getAddress());
         order.setStatus("PENDING");
 
-        List<OrderEntryModel> orderEntries = cart.getEntries().stream()
-                .map(cartEntry -> {
-                    OrderEntryModel orderEntry = new OrderEntryModel();
-                    orderEntry.setProductId(cartEntry.getProductId());
-                    orderEntry.setProductName(cartEntry.getProductName());
-                    orderEntry.setPrice(cartEntry.getPrice());
-                    orderEntry.setQuantity(cartEntry.getQuantity());
-                    orderEntry.setTotalPrice(cartEntry.getTotalPrice());
-                    orderEntry.setOrder(order);
-                    return orderEntry;
-                })
-                .collect(Collectors.toList());
-
+        List<OrderEntryModel> orderEntries = orderPopulator.cartEntriesToOrderEntries(cart.getEntries());
+        orderEntries.forEach(entry -> entry.setOrder(order));
         order.setEntries(orderEntries);
 
         OrderModel savedOrder = orderRepository.save(order);
