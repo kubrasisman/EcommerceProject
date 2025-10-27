@@ -6,7 +6,6 @@ import java.io.Serializable;
 
 @Data
 public class AddressDtoResponse implements Serializable {
-    private Long id;
     private CustomerDtoResponse owner;
     private String addressTitle;
     private String street;

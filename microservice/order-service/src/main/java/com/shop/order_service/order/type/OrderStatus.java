@@ -1,7 +1,7 @@
 package com.shop.order_service.order.type;
 
 public enum OrderStatus {
-    PENDING,
+    READY,
     PAID,
     PROCESSING,
     SHIPPED,

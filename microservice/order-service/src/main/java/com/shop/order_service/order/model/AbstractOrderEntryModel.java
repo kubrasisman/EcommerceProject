@@ -14,7 +14,7 @@ public abstract class AbstractOrderEntryModel {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    private Long product;
+    private String product;
     private String code;
     private Integer quantity;
     private double basePrice;
