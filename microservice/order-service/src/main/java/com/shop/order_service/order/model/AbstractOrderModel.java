@@ -1,5 +1,6 @@
 package com.shop.order_service.order.model;
 
+import com.shop.order_service.payment.type.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -23,6 +24,7 @@ public class AbstractOrderModel {
     private Long address;
     @Column(name = "owner")
     private String owner;
+    private PaymentMethod paymentMethod;
 
     @PrePersist
     protected void onCreate() {

@@ -34,7 +34,7 @@ public class DefaultCartEntryService implements CartEntryService {
         cartEntryModel.setBasePrice(product.getPrice());
         cartEntryModel.setQuantity(cartEntryDto.getQuantity());
         cartEntryModel.setTotalPrice(0D);
-        cartEntryModel.setProduct(product.getId());
+        cartEntryModel.setProduct(product.getCode());
         cartEntryModel.setOwner(UserUtil.current());
         cartEntryModel.setCart(cartRepository.findByOwner(UserUtil.current()).orElseThrow(RuntimeException::new));
 

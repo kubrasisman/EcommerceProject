@@ -39,7 +39,7 @@ public class DefaultCartSessionService {
         }
 
         CartModel cart = cartService.getCart();
-        CartDtoResponse data = cartPopulator.toData(cart);
+        CartDtoResponse data = cartPopulator.toResponseDto(cart);
         saveCartSession(data);
         return data;
     }
@@ -49,7 +49,7 @@ public class DefaultCartSessionService {
         CartModel cartModel = cartEntryModel.getCart();
         recalculateTotal(cartModel);
         CartModel savedCart = cartService.saveCart(cartModel);
-        CartDtoResponse data = cartPopulator.toData(savedCart);
+        CartDtoResponse data = cartPopulator.toResponseDto(savedCart);
         saveCartSession(data);
     }
 
@@ -58,7 +58,7 @@ public class DefaultCartSessionService {
         CartModel cart = cartService.getCart();
         recalculateTotal(cart);
         CartModel cartModel = cartService.saveCart(cart);
-        CartDtoResponse cartData = cartPopulator.toData(cartModel);
+        CartDtoResponse cartData = cartPopulator.toResponseDto(cartModel);
         saveCartSession(cartData);
     }
 
@@ -67,7 +67,7 @@ public class DefaultCartSessionService {
         CartModel cart = cartEntryModel.getCart();
         recalculateTotal(cart);
         CartModel cartModel = cartService.saveCart(cart);
-        CartDtoResponse cartData = cartPopulator.toData(cartModel);
+        CartDtoResponse cartData = cartPopulator.toResponseDto(cartModel);
         saveCartSession(cartData);
     }
 
@@ -80,8 +80,9 @@ public class DefaultCartSessionService {
         double total = 0.0;
         if (cartModel.getEntries() != null) {
             for (CartEntryModel entry : cartModel.getEntries()) {
-                total += entry.getBasePrice() * entry.getQuantity();
-                entry.setTotalPrice(total);
+                double entryTotal = entry.getBasePrice() * entry.getQuantity();
+                total += entryTotal;
+                entry.setTotalPrice(entryTotal);
             }
         }
         cartModel.setTotalPrice(total);
