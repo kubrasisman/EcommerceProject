@@ -6,4 +6,5 @@ public interface CartService {
     CartModel getCart();
     CartModel saveCart(CartModel cartModel);
     CartModel getCartByCode(String code);
+    void removeCart();
 }

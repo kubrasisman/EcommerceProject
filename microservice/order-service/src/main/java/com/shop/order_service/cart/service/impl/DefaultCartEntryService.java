@@ -64,4 +64,14 @@ public class DefaultCartEntryService implements CartEntryService {
         }
         cartEntryRepository.delete(cartEntryModelOptional.get());
     }
+
+    @Override
+    public Optional<CartEntryModel> findByProduct(String product) {
+        return cartEntryRepository.findByProduct(product);
+    }
+
+    @Override
+    public CartEntryModel saveCartEntry(CartEntryModel cartEntryModel) {
+        return cartEntryRepository.save(cartEntryModel);
+    }
 }

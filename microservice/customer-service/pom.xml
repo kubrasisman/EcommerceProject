@@ -96,10 +96,6 @@
 			<scope>runtime</scope>
 		</dependency>
 		<!-- Spring Security for password encoding -->
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency>
 		<!-- Redis for session management -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

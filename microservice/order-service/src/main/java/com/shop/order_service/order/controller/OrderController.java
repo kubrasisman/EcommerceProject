@@ -1,5 +1,6 @@
 package com.shop.order_service.order.controller;
 
+import com.shop.order_service.common.utils.UserUtil;
 import com.shop.order_service.order.dto.response.OrderDtoResponse;
 import com.shop.order_service.order.service.OrderService;
 import com.shop.order_service.order.type.OrderStatus;
@@ -25,9 +26,9 @@ public class OrderController {
     }
 
     @GetMapping("/customer")
-    public ResponseEntity<List<OrderDtoResponse>> getOrdersByCustomerEmail(@RequestParam String email) {
-        log.info("API call: getOrdersByCustomerEmail, email={}", email);
-        List<OrderDtoResponse> orders = orderService.getOrdersByCustomerEmail(email);
+    public ResponseEntity<List<OrderDtoResponse>> getOrdersByCustomerEmail() {
+        log.info("API call: getOrdersByCustomerEmail, email={}", UserUtil.current());
+        List<OrderDtoResponse> orders = orderService.getOrdersByCustomerEmail(UserUtil.current());
         return ResponseEntity.ok(orders);
     }
 

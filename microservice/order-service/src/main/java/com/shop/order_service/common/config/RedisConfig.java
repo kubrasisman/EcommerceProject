@@ -1,4 +1,4 @@
-package com.shop.order_service.config;
+package com.shop.order_service.common.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

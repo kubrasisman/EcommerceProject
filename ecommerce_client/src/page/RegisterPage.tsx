@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/store'
-import { registerUser } from '@/store/slices/authSlice'
+import { registerUser, fetchCurrentUser } from '@/store/slices/authSlice'
 import { fetchCart } from '@/store/slices/cartSlice'
 import Layout from '@/components/common/Layout'
 import { Button } from '@/components/ui/button'
@@ -62,6 +62,8 @@ export default function RegisterPage() {
         kvkkConsent: formData.kvkkConsent,
       })).unwrap()
       
+      // Kullanıcı bilgilerini yükle
+      await dispatch(fetchCurrentUser()).unwrap()
       // Yeni kullanıcının sepetini oluştur/yükle
       dispatch(fetchCart())
       
