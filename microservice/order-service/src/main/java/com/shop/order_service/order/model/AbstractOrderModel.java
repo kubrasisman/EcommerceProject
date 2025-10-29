@@ -24,6 +24,8 @@ public class AbstractOrderModel {
     private Long address;
     @Column(name = "owner")
     private String owner;
+    @Enumerated(EnumType.STRING)
+    @Column(length = 255, nullable = true)
     private PaymentMethod paymentMethod;
 
     @PrePersist

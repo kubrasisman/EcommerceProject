@@ -15,7 +15,7 @@ public abstract class CommonPopulator {
     @Autowired
     private CustomerServiceClient customerServiceClient;
 
-    protected CustomerDtoResponse findCustomer(String owner) {return customerServiceClient.getCustomer(owner);}
+    protected CustomerDtoResponse findCustomer(String owner) {return customerServiceClient.getCustomer();}
     protected AddressDtoResponse findAddress(Long address) {return address!= null ? customerServiceClient.getAddress(address) : null;}
     protected ProductDtoResponse findProduct(String product){
         return productServiceClient.getProduct(product);

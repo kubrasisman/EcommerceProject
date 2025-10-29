@@ -33,7 +33,6 @@ public class DefaultOrderService implements OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderPopulator orderPopulator;
-    private final CartService cartService;
     private final PaymentProcessorFactory paymentProcessorFactory;
 
     @Override

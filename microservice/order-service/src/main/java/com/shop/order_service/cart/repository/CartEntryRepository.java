@@ -12,5 +12,5 @@ public interface CartEntryRepository extends JpaRepository<CartEntryModel,Long> 
     Optional<CartEntryModel> findByCode(String code);
     Optional<CartEntryModel> findByOwner(String owner);
     Optional<CartEntryModel> findByOwnerAndCode(String owner,String code);
-
+    Optional<CartEntryModel> findByProduct(String product);
 }

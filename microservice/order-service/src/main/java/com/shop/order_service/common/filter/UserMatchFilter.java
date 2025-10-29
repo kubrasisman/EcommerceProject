@@ -21,7 +21,7 @@ public class UserMatchFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
-            String userHeader = request.getHeader("X-email");
+            String userHeader = request.getHeader("x-email");
             if (StringUtils.isNotEmpty(userHeader)) {
                 Objects.requireNonNull(RequestContextHolder.getRequestAttributes()).setAttribute("user", userHeader, 0);
             }

@@ -42,4 +42,9 @@ public class DefaultCartService implements CartService {
     public CartModel saveCart(CartModel cartModel) {
         return cartRepository.save(cartModel);
     }
+
+    @Override
+    public void removeCart() {
+        cartRepository.delete(getCart());
+    }
 }
