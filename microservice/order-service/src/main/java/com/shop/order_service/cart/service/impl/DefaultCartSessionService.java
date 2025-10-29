@@ -59,7 +59,6 @@ public class DefaultCartSessionService {
             recalculateTotal(cart);
             CartDtoResponse data = cartPopulator.toResponseDto(cart);
             saveCartSession(data);
-            recalculateTotal(cart);
             return;
         }
         CartEntryModel cartEntryModel = cartEntryService.addCartEntry(cartEntryDto);
