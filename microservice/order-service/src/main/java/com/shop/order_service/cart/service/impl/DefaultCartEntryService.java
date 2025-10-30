@@ -67,7 +67,7 @@ public class DefaultCartEntryService implements CartEntryService {
 
     @Override
     public Optional<CartEntryModel> findByProduct(String product) {
-        return cartEntryRepository.findByProduct(product);
+        return cartEntryRepository.findByProductAndOwner(product,UserUtil.current());
     }
 
     @Override
