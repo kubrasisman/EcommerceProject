@@ -34,6 +34,7 @@ public class DefaultOrderService implements OrderService {
     private final OrderRepository orderRepository;
     private final OrderPopulator orderPopulator;
     private final PaymentProcessorFactory paymentProcessorFactory;
+    private final CartService cartService;
 
     @Override
     @Transactional
@@ -57,6 +58,7 @@ public class DefaultOrderService implements OrderService {
 
             OrderModel savedOrder = orderRepository.save(order);
             log.info("Order saved successfully with ID {}", savedOrder.getId());
+            cartService.removeCart();
             return orderPopulator.toResponseDto(savedOrder);
 
         } catch (Exception e) {
