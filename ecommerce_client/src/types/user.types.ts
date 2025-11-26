@@ -1,9 +1,11 @@
 export interface User {
-  id: number
+  customerId: string
   email: string
   fullName: string
-  kvkkConsent: boolean
-  emailValid: boolean
+  phone?: string
+  avatar?: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export interface AuthResponse {

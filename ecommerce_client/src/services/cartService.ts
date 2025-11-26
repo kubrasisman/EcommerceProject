@@ -1,6 +1,5 @@
 import api from '@/lib/api'
 import type { CartData, AddToCartPayload, UpdateCartItemPayload, CartEntryDto } from '@/types/cart.types'
-import type { PaymentMethod } from '@/types/order.types'
 
 export const cartService = {
   // Get user's cart
@@ -37,17 +36,8 @@ export const cartService = {
   },
 
   // Clear cart (if needed)
-
-  // Update cart address
-  updateAddress: async (addressId: number): Promise<CartData> => {
-    const response = await api.put<CartData>(`/cart/update/address/${addressId}`)
-    return response.data
-  },
-
-  // Update cart payment method
-  updatePaymentMethod: async (paymentMethod: PaymentMethod): Promise<CartData> => {
-    const response = await api.put<CartData>(`/cart/update/payment/${paymentMethod}`)
-    return response.data
+  clearCart: async (): Promise<void> => {
+    await api.delete('/cart')
   },
 }
 

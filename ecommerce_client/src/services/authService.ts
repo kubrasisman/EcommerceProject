@@ -52,7 +52,7 @@ export const authService = {
 
   // Get current user
   getCurrentUser: async (): Promise<User> => {
-    const response = await api.get<User>('/customers')
+    const response = await api.get<User>('/auth/me')
     return response.data
   },
 

@@ -218,7 +218,7 @@ export function setupMockInterceptor(apiInstance: AxiosInstance, useMock = true)
             id: Math.floor(Math.random() * 1000),
             code: `CART-${generateId()}`,
             totalPrice: 0,
-            owner: 'user@example.com',
+            customerEmail: 'user@example.com',
             creationDate: new Date().toISOString(),
             entries: [],
           }
@@ -246,7 +246,7 @@ export function setupMockInterceptor(apiInstance: AxiosInstance, useMock = true)
               id: Math.floor(Math.random() * 1000),
               code: `CART-${generateId()}`,
               totalPrice: 0,
-              owner: 'user@example.com',
+              customerEmail: 'user@example.com',
               creationDate: new Date().toISOString(),
               entries: [],
             }
@@ -349,7 +349,7 @@ export function setupMockInterceptor(apiInstance: AxiosInstance, useMock = true)
           id: Math.floor(Math.random() * 1000),
           code: `CART-${generateId()}`,
           totalPrice: 0,
-          owner: 'user@example.com',
+          customerEmail: 'user@example.com',
           creationDate: new Date().toISOString(),
           entries: [],
         }
@@ -405,7 +405,7 @@ export function setupMockInterceptor(apiInstance: AxiosInstance, useMock = true)
           id: Math.floor(Math.random() * 1000),
           code: `CART-${generateId()}`,
           totalPrice: 0,
-          owner: 'user@example.com',
+          customerEmail: 'user@example.com',
           creationDate: new Date().toISOString(),
           entries: [],
         }

@@ -4,7 +4,6 @@ import Loader from './components/common/Loader'
 import ProtectedRoute from './components/common/ProtectedRoute'
 import { useAppDispatch, useAppSelector } from './store/store'
 import { fetchCart } from './store/slices/cartSlice'
-import { fetchCurrentUser } from './store/slices/authSlice'
 
 // Lazy load pages for better performance
 const HomePage = lazy(() => import('./page/HomePage'))
@@ -21,14 +20,7 @@ const ProfilePage = lazy(() => import('./page/ProfilePage'))
 
 function App() {
   const dispatch = useAppDispatch()
-  const { accessToken, user } = useAppSelector((state) => state.auth)
-
-  // Load user and cart when app starts if token exists
-  useEffect(() => {
-    if (accessToken && !user) {
-      dispatch(fetchCurrentUser())
-    }
-  }, [accessToken, user, dispatch])
+  const { accessToken } = useAppSelector((state) => state.auth)
 
   // Load cart when user is authenticated
   useEffect(() => {

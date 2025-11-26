@@ -1,6 +1,5 @@
 package com.shop.customer_service.userService.service.impl;
 
-import com.shop.customer_service.common.utils.UserUtil;
 import com.shop.customer_service.userService.dto.response.CustomerDtoResponse;
 import com.shop.customer_service.userService.model.CustomerModel;
 import com.shop.customer_service.userService.populator.CustomerPopulator;
@@ -22,10 +21,5 @@ public class DefaultCustomerService implements CustomerService {
                 .orElseThrow(() -> new RuntimeException("Invalid credentials"));
 
         return customerPopulator.toResponseData(customer);
-    }
-
-    @Override
-    public CustomerModel getCurrentCustomer() {
-        return customerRepository.findByEmail(UserUtil.current()).orElseThrow(()-> new RuntimeException("Invalid User"));
     }
 }

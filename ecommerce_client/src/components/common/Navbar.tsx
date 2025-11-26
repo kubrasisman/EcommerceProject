@@ -239,7 +239,7 @@ export default function Navbar() {
                         onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
                         className="flex flex-col items-start hover:outline hover:outline-1 hover:outline-white px-2 py-1 rounded"
                       >
-                        <div className="text-xs">Merhaba, {user?.fullName}</div>
+                        <div className="text-xs">Merhaba, Musap OCAK</div>
                         <div className="text-sm font-bold flex items-center gap-1">
                           Hesabımı Yönet
                           <ChevronDown className="h-3 w-3" />
@@ -403,7 +403,7 @@ export default function Navbar() {
                 {/* User Info */}
                 {accessToken ? (
                   <div className="pb-3 mb-3 border-b">
-                    <div className="font-bold">Merhaba, {user?.fullName}</div>
+                    <div className="font-bold">Merhaba, Musap OCAK</div>
                     <Link to="/profile" className="text-sm text-blue-600" onClick={() => setIsMenuOpen(false)}>
                       Hesabı Yönet
                     </Link>

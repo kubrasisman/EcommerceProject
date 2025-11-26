@@ -18,10 +18,10 @@ export default function ProductCard({ product }: ProductCardProps) {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    dispatch(addToCart({ product: product.code, quantity: 1 }))
+    dispatch(addToCart({ productId: product.code.toString(), quantity: 1 }))
     addToast({
-      title: 'Sepete Eklendi',
-      description: `${product.name} sepetinize eklendi.`,
+      title: 'Added to cart',
+      description: `${product.name} has been added to your cart.`,
       variant: 'success',
       duration: 3000,
     })
@@ -72,7 +72,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         ) : (
           <div className="flex items-center space-x-1">
             <Star className="h-4 w-4 text-gray-300" />
-            <span className="text-sm text-muted-foreground">Henüz değerlendirme yok</span>
+            <span className="text-sm text-muted-foreground">No reviews yet</span>
           </div>
         )}
 
@@ -93,7 +93,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           size="sm"
         >
           <ShoppingCart className="h-4 w-4 mr-2" />
-          Sepete Ekle
+          Add to Cart
         </Button>
       </div>
     </Link>

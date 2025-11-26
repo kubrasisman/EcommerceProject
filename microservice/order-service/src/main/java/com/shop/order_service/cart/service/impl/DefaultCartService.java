@@ -31,20 +31,9 @@ public class DefaultCartService implements CartService {
         return cartRepository.save(cartModel);
     }
 
-    @Override
-    public CartModel getCartByCode(String code) {
-        return cartRepository.findByCode(code)
-                .orElseThrow(() -> new IllegalArgumentException("Cart not found with code: " + code));
-
-    }
 
     @Override
     public CartModel saveCart(CartModel cartModel) {
         return cartRepository.save(cartModel);
-    }
-
-    @Override
-    public void removeCart() {
-        cartRepository.delete(getCart());
     }
 }

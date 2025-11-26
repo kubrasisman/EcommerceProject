@@ -18,8 +18,9 @@ import java.util.List;
 @EqualsAndHashCode(callSuper = true)
 public class OrderModel extends AbstractOrderModel {
 
-    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
-    private List<PaymentTransactionModel> payments;
+    @ManyToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "payment_id")
+    private PaymentTransactionModel payment;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     @OnDelete(action = OnDeleteAction.SET_NULL)

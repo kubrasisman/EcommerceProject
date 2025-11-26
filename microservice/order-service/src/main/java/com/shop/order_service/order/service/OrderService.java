@@ -1,20 +1,19 @@
 package com.shop.order_service.order.service;
 
-import com.shop.order_service.cart.model.CartModel;
-import com.shop.order_service.order.dto.response.OrderDtoResponse;
-import com.shop.order_service.order.type.OrderStatus;
+import com.shop.order_service.order.dto.OrderData;
+import jakarta.servlet.http.HttpSession;
 
 import java.util.List;
 
 public interface OrderService {
 
-    OrderDtoResponse placeOrder(CartModel cartModel);
+    OrderData placeOrder(HttpSession session);
 
-    OrderDtoResponse getOrderByCode(String code);
+    OrderData getOrderByCode(String code);
 
-    List<OrderDtoResponse> getOrdersByCustomerEmail(String email);
+    List<OrderData> getOrdersByCustomerEmail(String email);
 
-    List<OrderDtoResponse> getAllOrders();
+    List<OrderData> getAllOrders();
 
-    OrderDtoResponse updateOrderStatus(String code, OrderStatus status);
+    OrderData updateOrderStatus(String code, String status);
 }

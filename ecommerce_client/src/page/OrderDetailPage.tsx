@@ -1,12 +1,12 @@
 import { useEffect } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/store'
-import { fetchOrderByCode } from '@/store/slices/orderSlice'
+import { fetchOrderById } from '@/store/slices/orderSlice'
 import Layout from '@/components/common/Layout'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { Package, MapPin, CreditCard, User } from 'lucide-react'
+import { Package, Truck, MapPin, CreditCard } from 'lucide-react'
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -15,7 +15,7 @@ export default function OrderDetailPage() {
 
   useEffect(() => {
     if (id) {
-      dispatch(fetchOrderByCode(id))
+      dispatch(fetchOrderById(id))
     }
   }, [dispatch, id])
 
@@ -55,9 +55,9 @@ export default function OrderDetailPage() {
         <div className="mb-8">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Sipariş #{selectedOrder.code}</h1>
+              <h1 className="text-3xl font-bold mb-2">Order #{selectedOrder.orderNumber}</h1>
               <p className="text-muted-foreground">
-                Sipariş Tarihi: {new Date(selectedOrder.creationDate).toLocaleDateString('tr-TR', {
+                Placed on {new Date(selectedOrder.createdAt).toLocaleDateString('en-US', {
                   year: 'numeric',
                   month: 'long',
                   day: 'numeric',
@@ -78,46 +78,38 @@ export default function OrderDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Package className="mr-2 h-5 w-5" />
-                  Sipariş Ürünleri
+                  Order Items
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {selectedOrder.entries.map((entry, index) => (
-                    <div key={index} className="flex gap-4 pb-4 border-b last:border-0">
-                      {entry.product.imageUrl && (
-                        <img
-                          src={entry.product.imageUrl}
-                          alt={entry.product.name}
-                          className="h-20 w-20 rounded object-cover"
-                        />
-                      )}
+                  {selectedOrder.items.map((item) => (
+                    <div key={item.id} className="flex gap-4 pb-4 border-b last:border-0">
+                      <img
+                        src={item.productImage}
+                        alt={item.productName}
+                        className="h-20 w-20 rounded object-cover"
+                      />
                       <div className="flex-1">
                         <Link 
-                          to={`/product/${entry.product.code}`}
+                          to={`/product/${item.productId}`}
                           className="font-semibold hover:text-primary"
                         >
-                          {entry.product.name}
+                          {item.productName}
                         </Link>
                         <p className="text-sm text-muted-foreground">
-                          Adet: {entry.quantity}
+                          Quantity: {item.quantity}
                         </p>
-                        <p className="text-sm text-muted-foreground">
-                          Birim Fiyat: ${entry.basePrice.toFixed(2)}
-                        </p>
-                        {entry.shippedAmount !== undefined && entry.shippedAmount > 0 && (
-                          <p className="text-sm text-green-600">
-                            Gönderilen: {entry.shippedAmount}
-                          </p>
+                        {item.selectedSize && (
+                          <p className="text-sm text-muted-foreground">Size: {item.selectedSize}</p>
                         )}
-                        {entry.canceledAmount !== undefined && entry.canceledAmount > 0 && (
-                          <p className="text-sm text-red-600">
-                            İptal Edilen: {entry.canceledAmount}
-                          </p>
+                        {item.selectedColor && (
+                          <p className="text-sm text-muted-foreground">Color: {item.selectedColor}</p>
                         )}
                       </div>
                       <div className="text-right">
-                        <p className="font-semibold">${entry.totalPrice.toFixed(2)}</p>
+                        <p className="font-semibold">${(item.price * item.quantity).toFixed(2)}</p>
+                        <p className="text-sm text-muted-foreground">${item.price.toFixed(2)} each</p>
                       </div>
                     </div>
                   ))}
@@ -130,52 +122,73 @@ export default function OrderDetailPage() {
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <MapPin className="mr-2 h-5 w-5" />
-                  Teslimat Adresi
+                  Shipping Address
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-1">
-                  <p className="font-semibold">{selectedOrder.address.addressTitle}</p>
-                  <p>{selectedOrder.address.street}</p>
+                  <p className="font-semibold">{selectedOrder.shippingAddress.fullName}</p>
+                  <p>{selectedOrder.shippingAddress.addressLine1}</p>
+                  {selectedOrder.shippingAddress.addressLine2 && (
+                    <p>{selectedOrder.shippingAddress.addressLine2}</p>
+                  )}
                   <p>
-                    {selectedOrder.address.city}, {selectedOrder.address.postalCode}
+                    {selectedOrder.shippingAddress.city}, {selectedOrder.shippingAddress.state}{' '}
+                    {selectedOrder.shippingAddress.postalCode}
                   </p>
-                  <p>{selectedOrder.address.country}</p>
-                  <p className="pt-2">Telefon: {selectedOrder.address.phoneNumber}</p>
+                  <p>{selectedOrder.shippingAddress.country}</p>
+                  <p className="pt-2">Phone: {selectedOrder.shippingAddress.phone}</p>
                 </div>
               </CardContent>
             </Card>
 
-            {/* Customer Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center">
-                  <User className="mr-2 h-5 w-5" />
-                  Müşteri Bilgileri
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-1">
-                  <p className="font-semibold">
-                    {selectedOrder.owner.firstName} {selectedOrder.owner.lastName}
-                  </p>
-                  <p className="text-sm text-muted-foreground">{selectedOrder.owner.email}</p>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Tracking */}
+            {selectedOrder.trackingNumber && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <Truck className="mr-2 h-5 w-5" />
+                    Tracking Information
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="font-mono text-lg">{selectedOrder.trackingNumber}</p>
+                  {selectedOrder.estimatedDelivery && (
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Estimated delivery:{' '}
+                      {new Date(selectedOrder.estimatedDelivery).toLocaleDateString()}
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           {/* Right Column - Order Summary */}
           <div>
             <Card>
               <CardHeader>
-                <CardTitle>Sipariş Özeti</CardTitle>
+                <CardTitle>Order Summary</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <div className="flex justify-between text-lg font-bold pt-2">
-                    <span>Toplam</span>
-                    <span>${selectedOrder.totalPrice.toFixed(2)}</span>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Subtotal</span>
+                    <span>${selectedOrder.subtotal.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Tax</span>
+                    <span>${selectedOrder.tax.toFixed(2)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Shipping</span>
+                    <span>
+                      {selectedOrder.shipping === 0 ? 'FREE' : `$${selectedOrder.shipping.toFixed(2)}`}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-lg font-bold pt-2 border-t">
+                    <span>Total</span>
+                    <span>${selectedOrder.total.toFixed(2)}</span>
                   </div>
                 </div>
 
@@ -183,34 +196,20 @@ export default function OrderDetailPage() {
                   <div className="flex items-center text-sm">
                     <CreditCard className="mr-2 h-4 w-4" />
                     <span>
-                      Ödeme: {selectedOrder.paymentMethod === 'CREDIT_CARD' ? 'Kredi Kartı' : 'Havale/EFT'}
+                      Payment: {selectedOrder.paymentMethod.replace('_', ' ').toUpperCase()}
                     </span>
                   </div>
-                  {selectedOrder.payments && selectedOrder.payments.length > 0 && (
-                    <div className="flex items-center text-sm">
-                      <Badge variant={selectedOrder.payments[0].status === 'PAID' ? 'success' : 'default'}>
-                        {selectedOrder.payments[0].status}
-                      </Badge>
-                    </div>
-                  )}
+                  <div className="flex items-center text-sm">
+                    <Badge variant={selectedOrder.paymentStatus === 'paid' ? 'success' : 'default'}>
+                      {selectedOrder.paymentStatus.toUpperCase()}
+                    </Badge>
+                  </div>
                 </div>
 
-                {selectedOrder.payments && selectedOrder.payments.length > 0 && (
+                {selectedOrder.notes && (
                   <div className="pt-4 border-t">
-                    <p className="text-sm font-semibold mb-2">Ödeme İşlemleri</p>
-                    <div className="space-y-2">
-                      {selectedOrder.payments.map((payment, index) => (
-                        <div key={index} className="text-sm border-l-2 border-gray-300 pl-3 py-1">
-                          <p className="font-medium">${payment.amount.toFixed(2)}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {payment.transactionId}
-                          </p>
-                          <Badge variant={payment.status === 'PAID' ? 'success' : 'default'} className="mt-1">
-                            {payment.status}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
+                    <p className="text-sm font-semibold mb-1">Notes</p>
+                    <p className="text-sm text-muted-foreground">{selectedOrder.notes}</p>
                   </div>
                 )}
               </CardContent>

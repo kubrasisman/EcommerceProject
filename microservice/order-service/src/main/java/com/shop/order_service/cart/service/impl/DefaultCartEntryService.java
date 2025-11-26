@@ -34,7 +34,7 @@ public class DefaultCartEntryService implements CartEntryService {
         cartEntryModel.setBasePrice(product.getPrice());
         cartEntryModel.setQuantity(cartEntryDto.getQuantity());
         cartEntryModel.setTotalPrice(0D);
-        cartEntryModel.setProduct(product.getCode());
+        cartEntryModel.setProduct(product.getId());
         cartEntryModel.setOwner(UserUtil.current());
         cartEntryModel.setCart(cartRepository.findByOwner(UserUtil.current()).orElseThrow(RuntimeException::new));
 
@@ -63,15 +63,5 @@ public class DefaultCartEntryService implements CartEntryService {
             throw new RuntimeException("Entry Not Found");
         }
         cartEntryRepository.delete(cartEntryModelOptional.get());
-    }
-
-    @Override
-    public Optional<CartEntryModel> findByProduct(String product) {
-        return cartEntryRepository.findByProductAndOwner(product,UserUtil.current());
-    }
-
-    @Override
-    public CartEntryModel saveCartEntry(CartEntryModel cartEntryModel) {
-        return cartEntryRepository.save(cartEntryModel);
     }
 }

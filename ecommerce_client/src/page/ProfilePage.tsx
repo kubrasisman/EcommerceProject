@@ -1,4 +1,3 @@
-import { useEffect } from 'react'
 import { useAppSelector } from '@/store/store'
 import { useNavigate } from 'react-router-dom'
 import Layout from '@/components/common/Layout'
@@ -10,20 +9,15 @@ export default function ProfilePage() {
   const { user } = useAppSelector((state) => state.auth)
   const navigate = useNavigate()
 
-  useEffect(() => {
-    if (!user) {
-      navigate('/login')
-    }
-  }, [user, navigate])
-
   if (!user) {
+    navigate('/login')
     return null
   }
 
   return (
     <Layout>
       <div className="container mx-auto px-4 py-12">
-        <h1 className="text-3xl font-bold mb-8">Profilim</h1>
+        <h1 className="text-3xl font-bold mb-8">My Profile</h1>
 
         <div className="grid md:grid-cols-3 gap-8">
           {/* Sidebar */}
@@ -41,7 +35,7 @@ export default function ProfilePage() {
             <nav className="space-y-2">
               <Button variant="ghost" className="w-full justify-start">
                 <User className="mr-2 h-4 w-4" />
-                Profil
+                Profile
               </Button>
               <Button 
                 variant="ghost" 
@@ -49,15 +43,15 @@ export default function ProfilePage() {
                 onClick={() => navigate('/orders')}
               >
                 <Package className="mr-2 h-4 w-4" />
-                Siparişlerim
+                Orders
               </Button>
               <Button variant="ghost" className="w-full justify-start">
                 <MapPin className="mr-2 h-4 w-4" />
-                Adreslerim
+                Addresses
               </Button>
               <Button variant="ghost" className="w-full justify-start">
                 <Settings className="mr-2 h-4 w-4" />
-                Ayarlar
+                Settings
               </Button>
             </nav>
           </div>
@@ -67,45 +61,53 @@ export default function ProfilePage() {
             {/* Profile Information */}
             <Card>
               <CardHeader>
-                <CardTitle>Profil Bilgileri</CardTitle>
+                <CardTitle>Profile Information</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <label className="text-sm font-semibold text-muted-foreground">Ad Soyad</label>
+                  <label className="text-sm font-semibold text-muted-foreground">Full Name</label>
                   <p className="text-lg">{user.fullName}</p>
                 </div>
                 <div>
                   <label className="text-sm font-semibold text-muted-foreground">Email</label>
                   <p className="text-lg">{user.email}</p>
                 </div>
-                <div>
-                  <label className="text-sm font-semibold text-muted-foreground">Email Doğrulandı</label>
-                  <p className="text-lg">
-                    {user.emailValid ? (
-                      <span className="text-green-600">✓ Doğrulandı</span>
-                    ) : (
-                      <span className="text-orange-600">Beklemede</span>
-                    )}
-                  </p>
-                </div>
-                <Button>Profili Düzenle</Button>
+                {user.phone && (
+                  <div>
+                    <label className="text-sm font-semibold text-muted-foreground">Phone</label>
+                    <p className="text-lg">{user.phone}</p>
+                  </div>
+                )}
+                {user.createdAt && (
+                  <div>
+                    <label className="text-sm font-semibold text-muted-foreground">Member Since</label>
+                    <p className="text-lg">
+                      {new Date(user.createdAt).toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })}
+                    </p>
+                  </div>
+                )}
+                <Button>Edit Profile</Button>
               </CardContent>
             </Card>
 
             {/* Quick Stats */}
             <Card>
               <CardHeader>
-                <CardTitle>Hesap Özeti</CardTitle>
+                <CardTitle>Account Overview</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="text-center p-4 rounded-lg bg-muted">
                     <p className="text-3xl font-bold text-primary">0</p>
-                    <p className="text-sm text-muted-foreground">Toplam Sipariş</p>
+                    <p className="text-sm text-muted-foreground">Total Orders</p>
                   </div>
                   <div className="text-center p-4 rounded-lg bg-muted">
                     <p className="text-3xl font-bold text-primary">$0</p>
-                    <p className="text-sm text-muted-foreground">Toplam Harcama</p>
+                    <p className="text-sm text-muted-foreground">Total Spent</p>
                   </div>
                 </div>
               </CardContent>

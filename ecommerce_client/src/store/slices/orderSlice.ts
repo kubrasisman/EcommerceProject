@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import type { Order } from '@/types/order.types'
+import type { Order, CreateOrderPayload } from '@/types/order.types'
 import type { LoadingState } from '@/types/common.types'
 import { orderService } from '@/services/orderService'
 
@@ -24,31 +24,37 @@ const initialState: OrderState = {
 }
 
 // Async Thunks
-export const placeOrder = createAsyncThunk(
-  'orders/placeOrder',
-  async () => {
-    const response = await orderService.placeOrder()
+export const createOrder = createAsyncThunk(
+  'orders/createOrder',
+  async (payload: CreateOrderPayload) => {
+    const response = await orderService.createOrder(payload)
     return response
   }
 )
 
-export const fetchOrdersByEmail = createAsyncThunk(
-  'orders/fetchOrdersByEmail',
-  async () => {
-    const response = await orderService.getOrdersByCustomerEmail()
+export const fetchOrders = createAsyncThunk(
+  'orders/fetchOrders',
+  async (params: { page?: number; pageSize?: number } = {}) => {
+    const response = await orderService.getOrders(params.page, params.pageSize)
     return response
   }
 )
 
-export const fetchOrderByCode = createAsyncThunk(
-  'orders/fetchOrderByCode',
-  async (code: string) => {
-    const response = await orderService.getOrderByCode(code)
+export const fetchOrderById = createAsyncThunk(
+  'orders/fetchOrderById',
+  async (orderId: string) => {
+    const response = await orderService.getOrderById(orderId)
     return response
   }
 )
 
-
+export const cancelOrder = createAsyncThunk(
+  'orders/cancelOrder',
+  async (orderId: string) => {
+    const response = await orderService.cancelOrder(orderId)
+    return response
+  }
+)
 
 const orderSlice = createSlice({
   name: 'orders',
@@ -60,50 +66,62 @@ const orderSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Place Order (Checkout)
-      .addCase(placeOrder.pending, (state) => {
+      // Create Order
+      .addCase(createOrder.pending, (state) => {
         state.loading = 'loading'
         state.error = null
       })
-      .addCase(placeOrder.fulfilled, (state, action) => {
+      .addCase(createOrder.fulfilled, (state, action) => {
         state.loading = 'succeeded'
         state.orders.unshift(action.payload)
         state.selectedOrder = action.payload
       })
-      .addCase(placeOrder.rejected, (state, action) => {
+      .addCase(createOrder.rejected, (state, action) => {
         state.loading = 'failed'
-        state.error = action.error.message || 'Failed to place order'
+        state.error = action.error.message || 'Failed to create order'
       })
 
-      // Fetch Orders By Email
-      .addCase(fetchOrdersByEmail.pending, (state) => {
+      // Fetch Orders
+      .addCase(fetchOrders.pending, (state) => {
         state.loading = 'loading'
         state.error = null
       })
-      .addCase(fetchOrdersByEmail.fulfilled, (state, action) => {
+      .addCase(fetchOrders.fulfilled, (state, action) => {
         state.loading = 'succeeded'
-        state.orders = action.payload
-        state.total = action.payload.length
+        state.orders = action.payload.orders
+        state.total = action.payload.total
+        state.page = action.payload.page
+        state.pageSize = action.payload.pageSize
       })
-      .addCase(fetchOrdersByEmail.rejected, (state, action) => {
+      .addCase(fetchOrders.rejected, (state, action) => {
         state.loading = 'failed'
         state.error = action.error.message || 'Failed to fetch orders'
       })
 
-      // Fetch Order By Code
-      .addCase(fetchOrderByCode.pending, (state) => {
+      // Fetch Order By ID
+      .addCase(fetchOrderById.pending, (state) => {
         state.loading = 'loading'
         state.error = null
       })
-      .addCase(fetchOrderByCode.fulfilled, (state, action) => {
+      .addCase(fetchOrderById.fulfilled, (state, action) => {
         state.loading = 'succeeded'
         state.selectedOrder = action.payload
       })
-      .addCase(fetchOrderByCode.rejected, (state, action) => {
+      .addCase(fetchOrderById.rejected, (state, action) => {
         state.loading = 'failed'
         state.error = action.error.message || 'Failed to fetch order'
       })
 
+      // Cancel Order
+      .addCase(cancelOrder.fulfilled, (state, action) => {
+        const index = state.orders.findIndex((order) => order.id === action.payload.id)
+        if (index !== -1) {
+          state.orders[index] = action.payload
+        }
+        if (state.selectedOrder?.id === action.payload.id) {
+          state.selectedOrder = action.payload
+        }
+      })
   },
 })
 

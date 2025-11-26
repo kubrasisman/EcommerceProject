@@ -3,7 +3,6 @@ package com.shop.order_service.cart.controller;
 import com.shop.order_service.cart.dto.response.CartDtoResponse;
 import com.shop.order_service.cart.dto.request.CartEntryDto;
 import com.shop.order_service.cart.service.impl.DefaultCartSessionService;
-import com.shop.order_service.payment.type.PaymentMethod;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -42,20 +41,5 @@ public class CartController {
         CartDtoResponse cart = cartSessionService.getCartSession();
         return ResponseEntity.ok(cart);
     }
-
-    @PutMapping("/update/address/{id}")
-    public ResponseEntity<CartDtoResponse> updateAddress(@PathVariable("id") Long id) {
-        cartSessionService.updateAddress(id);
-        CartDtoResponse cart = cartSessionService.getCartSession();
-        return ResponseEntity.ok(cart);
-    }
-
-    @PutMapping("/update/payment/{paymentMethod}")
-    public ResponseEntity<CartDtoResponse> updatePayment(@PathVariable("paymentMethod") PaymentMethod paymentMethod) {
-        cartSessionService.updatePayment(paymentMethod);
-        CartDtoResponse cart = cartSessionService.getCartSession();
-        return ResponseEntity.ok(cart);
-    }
-
 
 }

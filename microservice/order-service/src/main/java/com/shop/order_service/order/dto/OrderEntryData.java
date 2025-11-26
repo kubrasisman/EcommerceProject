@@ -7,11 +7,15 @@ import lombok.Setter;
 import java.time.LocalDateTime;
 
 @Data
+@Getter
+@Setter
 public class OrderEntryData {
-    private String product;
+    private Long id;
+    private Long productCode;
     private Integer quantity;
     private double basePrice;
     private double totalPrice;
     private Integer canceledAmount;
     private Integer shippedAmount;
+    private LocalDateTime creationDate;
 }

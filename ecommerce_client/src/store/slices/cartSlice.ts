@@ -73,6 +73,10 @@ export const removeFromCart = createAsyncThunk(
   }
 )
 
+export const clearCart = createAsyncThunk('cart/clearCart', async () => {
+  await cartService.clearCart()
+})
+
 const cartSlice = createSlice({
   name: 'cart',
   initialState,
@@ -145,6 +149,14 @@ const cartSlice = createSlice({
         state.error = action.error.message || 'Ürün çıkarılamadı'
       })
 
+      // Clear Cart
+      .addCase(clearCart.fulfilled, (state) => {
+        state.cartId = null
+        state.cartCode = null
+        state.items = []
+        state.subtotal = 0
+        state.total = 0
+      })
   },
 })
 

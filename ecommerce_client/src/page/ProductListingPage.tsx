@@ -60,21 +60,21 @@ export default function ProductListingPage() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
           <div>
             <h1 className="text-3xl font-bold mb-2">
-              {query ? `"${query}" için arama sonuçları` : category ? category.charAt(0).toUpperCase() + category.slice(1) : 'Tüm Ürünler'}
+              {query ? `Search Results for "${query}"` : category ? category.charAt(0).toUpperCase() + category.slice(1) : 'All Products'}
             </h1>
             <p className="text-muted-foreground">
-              {loading === 'succeeded' && `${products.length} ürün bulundu`}
+              {loading === 'succeeded' && `${products.length} products found`}
             </p>
           </div>
 
           <div className="mt-4 md:mt-0">
             <Select
               options={[
-                { value: 'id-DESC', label: 'En Yeni' },
-                { value: 'price-ASC', label: 'Fiyat: Düşükten Yükseğe' },
-                { value: 'price-DESC', label: 'Fiyat: Yüksekten Düşüğe' },
-                { value: 'name-ASC', label: 'İsim: A-Z' },
-                { value: 'name-DESC', label: 'İsim: Z-A' },
+                { value: 'id-DESC', label: 'Newest' },
+                { value: 'price-ASC', label: 'Price: Low to High' },
+                { value: 'price-DESC', label: 'Price: High to Low' },
+                { value: 'name-ASC', label: 'Name: A to Z' },
+                { value: 'name-DESC', label: 'Name: Z to A' },
               ]}
               value={`${sortBy}-${sortOrder}`}
               onChange={(e) => handleSortChange(e.target.value)}
@@ -95,8 +95,8 @@ export default function ProductListingPage() {
           </div>
         ) : products.length === 0 ? (
           <div className="text-center py-12">
-            <h2 className="text-2xl font-semibold mb-2">Ürün bulunamadı</h2>
-            <p className="text-muted-foreground">Arama veya filtreleri değiştirmeyi deneyin</p>
+            <h2 className="text-2xl font-semibold mb-2">No products found</h2>
+            <p className="text-muted-foreground">Try adjusting your search or filters</p>
           </div>
         ) : (
           <>
@@ -116,7 +116,7 @@ export default function ProductListingPage() {
                   disabled={currentPage === 0}
                 >
                   <ChevronLeft className="h-4 w-4" />
-                  Önceki
+                  Previous
                 </Button>
                 <div className="flex items-center space-x-1">
                   {[...Array(Math.min(5, totalPage))].map((_, i) => {
@@ -138,7 +138,7 @@ export default function ProductListingPage() {
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPage - 1}
                 >
-                  Sonraki
+                  Next
                   <ChevronRight className="h-4 w-4" />
                 </Button>
               </div>

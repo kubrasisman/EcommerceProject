@@ -5,7 +5,7 @@ import lombok.Data;
 @Data
 public class CartEntryDto {
     private String cart;
-    private String product;
+    private Long product;
     private Integer quantity;
     private String code;
 }

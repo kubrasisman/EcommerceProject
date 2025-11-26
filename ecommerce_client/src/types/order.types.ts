@@ -15,8 +15,10 @@ export type PaymentStatus =
   | 'refunded'
 
 export type PaymentMethod = 
-  | 'CREDIT_CARD' 
-  | 'WIRE_TRANSFER'
+  | 'credit_card' 
+  | 'debit_card' 
+  | 'paypal' 
+  | 'cash_on_delivery'
 
 export interface ShippingAddress {
   fullName: string
@@ -40,59 +42,25 @@ export interface OrderItem {
   selectedColor?: string
 }
 
-// Backend OrderEntryDtoResponse
-export interface OrderEntry {
-  product: {
-    id: number
-    code: string
-    name: string
-    price: number
-    imageUrl?: string
-  }
-  quantity: number
-  basePrice: number
-  totalPrice: number
-  canceledAmount?: number
-  shippedAmount?: number
-}
-
-// Backend PaymentTransactionDtoResponse
-export interface PaymentTransaction {
-  paymentMethod: PaymentMethod
-  transactionId: string
-  amount: number
-  status: PaymentStatus
-  paymentInfo?: any
-}
-
-// Backend OrderDtoResponse
 export interface Order {
-  code: string
-  totalPrice: number
-  owner: {
-    id: number
-    firstName: string
-    lastName: string
-    email: string
-  }
-  creationDate: string
-  address: {
-    id: number
-    addressTitle: string
-    street: string
-    city: string
-    country: string
-    postalCode: string
-    phoneNumber: string
-  }
-  payments: PaymentTransaction[]
-  paymentMethod: PaymentMethod
-  entries: OrderEntry[]
+  id: string
+  userId: string
+  orderNumber: string
+  items: OrderItem[]
+  subtotal: number
+  tax: number
+  shipping: number
+  total: number
   status: OrderStatus
-  
-  // Eski yapı ile uyumluluk için (frontend'de bazı yerlerde kullanılıyor)
-  id?: string
-  orderNumber?: string
+  paymentStatus: PaymentStatus
+  paymentMethod: PaymentMethod
+  shippingAddress: ShippingAddress
+  billingAddress?: ShippingAddress
+  notes?: string
+  trackingNumber?: string
+  estimatedDelivery?: string
+  createdAt: string
+  updatedAt: string
 }
 
 export interface CreateOrderPayload {

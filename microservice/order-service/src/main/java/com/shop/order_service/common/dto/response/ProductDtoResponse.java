@@ -6,7 +6,8 @@ import java.io.Serializable;
 
 @Data
 public class ProductDtoResponse implements Serializable {
-    private String code;
+    private Long id;
+    private Long code;
     private String name;
     private String title;
     private String description;

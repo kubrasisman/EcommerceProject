@@ -85,10 +85,14 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = 'succeeded'
+        state.user = {
+          customerId: action.payload.customerId,
+          email: action.payload.email,
+          fullName: action.payload.fullName,
+        }
         state.accessToken = action.payload.accessToken
         state.refreshToken = action.payload.refreshToken
         state.error = null
-        // User will be fetched by fetchCurrentUser after login
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = 'failed'
@@ -102,9 +106,13 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = 'succeeded'
+        state.user = {
+          customerId: action.payload.customerId,
+          email: action.payload.email,
+          fullName: action.payload.fullName,
+        }
         state.accessToken = action.payload.accessToken
         state.refreshToken = action.payload.refreshToken
-        // User will be fetched by fetchCurrentUser after register
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = 'failed'
