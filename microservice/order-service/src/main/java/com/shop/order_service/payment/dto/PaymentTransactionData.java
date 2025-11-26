@@ -1,12 +1,15 @@
 package com.shop.order_service.payment.dto;
 
+import com.shop.order_service.payment.type.PaymentMethod;
+import com.shop.order_service.payment.type.PaymentStatus;
 import lombok.Data;
 
 @Data
 public class PaymentTransactionData {
-    private Long id;
-    private String paymentMethod; // todo ileride enum olabilir
+    private String order;
+    private PaymentMethod paymentMethod;
     private String transactionId;
     private double amount;
-    private String status; // todo ileride enum olabilir
+    private PaymentStatus status;
+    private PaymentInfoDto paymentInfo;
 }

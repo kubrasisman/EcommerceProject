@@ -38,9 +38,9 @@ public class JwtGatewayFilterFactory extends AbstractGatewayFilterFactory<JwtGat
             String email = jwtUtil.extractEmail(token);
 
             ServerHttpRequest modifiedRequest = exchange.getRequest().mutate()
-                    .header("X-Customer-Id", customerId)
-                    .header("X-Username", username)
-                    .header("X-email", email)
+                    .header("x-customer-id", customerId)
+                    .header("x-username", username)
+                    .header("x-email", email)
                     .build();
 
             return chain.filter(exchange.mutate().request(modifiedRequest).build());

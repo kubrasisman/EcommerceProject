@@ -7,7 +7,6 @@ import java.io.Serializable;
 
 @Data
 public class CartEntryDtoResponse implements Serializable {
-    private Long id;
     private ProductDtoResponse product;
     private CustomerDtoResponse owner;
     private Integer quantity;

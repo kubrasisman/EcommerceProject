@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/store'
-import { loginUser } from '@/store/slices/authSlice'
+import { loginUser, fetchCurrentUser } from '@/store/slices/authSlice'
 import { fetchCart } from '@/store/slices/cartSlice'
 import Layout from '@/components/common/Layout'
 import { Button } from '@/components/ui/button'
@@ -31,6 +31,8 @@ export default function LoginPage() {
     
     try {
       await dispatch(loginUser(formData)).unwrap()
+      // Kullanıcı bilgilerini yükle
+      await dispatch(fetchCurrentUser()).unwrap()
       // Kullanıcının sepetini yükle
       dispatch(fetchCart())
       addToast({

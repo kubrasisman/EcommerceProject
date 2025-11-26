@@ -1,4 +1,5 @@
 import type { Product } from './product.types'
+import type { PaymentMethod } from './order.types'
 
 // Backend CartEntryData
 export interface CartEntryData {
@@ -14,9 +15,11 @@ export interface CartData {
   id: number
   code: string
   totalPrice: number
-  customerEmail: string
+  owner: string
   creationDate: string
   entries: CartEntryData[]
+  paymentMethod?: PaymentMethod
+  deliveryAddressId?: number
 }
 
 // Request DTOs

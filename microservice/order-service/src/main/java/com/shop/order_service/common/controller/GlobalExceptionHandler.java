@@ -1,4 +1,4 @@
-package com.shop.order_service.cart.controller;
+package com.shop.order_service.common.controller;
 
 import com.shop.order_service.cart.dto.request.ErrorResponse;
 import jakarta.servlet.http.HttpServletRequest;

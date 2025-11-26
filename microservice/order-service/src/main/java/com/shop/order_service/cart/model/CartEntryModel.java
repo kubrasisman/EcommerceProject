@@ -14,7 +14,7 @@ import org.hibernate.annotations.OnDeleteAction;
 @Data
 @EqualsAndHashCode(callSuper = true)
 public class CartEntryModel  extends AbstractOrderEntryModel {
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "cart_id")
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private CartModel cart;
