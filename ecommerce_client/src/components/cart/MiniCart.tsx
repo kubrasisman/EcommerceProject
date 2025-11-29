@@ -1,5 +1,5 @@
 import { X, ShoppingBag } from 'lucide-react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAppSelector } from '@/store/store'
 import { Button } from '@/components/ui/button'
 import CartItemComponent from '@/components/common/CartItemComponent'
@@ -12,6 +12,17 @@ interface MiniCartProps {
 
 export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
   const { items, total } = useAppSelector((state) => state.cart)
+  const navigate = useNavigate()
+
+  const handleViewCart = () => {
+    onClose()
+    navigate('/cart')
+  }
+
+  const handleCheckout = () => {
+    onClose()
+    navigate('/checkout')
+  }
 
   if (!isOpen) return null
 
@@ -65,16 +76,12 @@ export default function MiniCart({ isOpen, onClose }: MiniCartProps) {
                   <span>${total.toFixed(2)}</span>
                 </div>
                 <div className="space-y-2">
-                  <Link to="/cart" onClick={onClose}>
-                    <Button variant="outline" className="w-full">
-                      Sepeti Görüntüle
-                    </Button>
-                  </Link>
-                  <Link to="/checkout" onClick={onClose}>
-                    <Button className="w-full">
-                      Ödemeye Geç
-                    </Button>
-                  </Link>
+                  <Button variant="outline" className="w-full" onClick={handleViewCart}>
+                    Sepeti Görüntüle
+                  </Button>
+                  <Button className="w-full" onClick={handleCheckout}>
+                    Ödemeye Geç
+                  </Button>
                 </div>
               </div>
             </>

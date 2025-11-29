@@ -4,7 +4,6 @@ import com.shop.product_service.product.dto.ProductDto;
 import com.shop.product_service.product.dto.response.ProductDtoResponse;
 import com.shop.product_service.product.dto.response.ProductPageableResponse;
 import org.springframework.data.domain.Pageable;
-import org.springframework.stereotype.Service;
 
 import java.util.List;
 
