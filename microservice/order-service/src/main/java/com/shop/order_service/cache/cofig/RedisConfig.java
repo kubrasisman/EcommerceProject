@@ -1,4 +1,4 @@
-package com.shop.customer_service.authService.config;
+package com.shop.order_service.cache.cofig;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
