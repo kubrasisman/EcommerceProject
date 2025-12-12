@@ -8,9 +8,9 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 public interface CartEntryService {
-    CartEntryModel addCartEntry(CartEntryDto cartEntryDto);
+    CartEntryModel addCartEntry(CartModel cartModel, CartEntryDto cartEntryDto);
     CartEntryModel updateCartEntry(CartEntryDto cartEntryDto);
-    void deleteCartEntry(String code);
+    void deleteCartEntry(CartModel cartModel, String code);
     Optional<CartEntryModel> findByProduct(String product);
     CartEntryModel saveCartEntry(CartEntryModel cartEntryModel);
 }

@@ -1,5 +1,6 @@
 package com.shop.order_service.cart.service.impl;
 
+import com.shop.order_service.cart.model.CartModel;
 import com.shop.order_service.cart.repository.CartRepository;
 import com.shop.order_service.common.client.ProductServiceClient;
 import com.shop.order_service.common.dto.response.ProductDtoResponse;
@@ -21,11 +22,7 @@ public class DefaultCartEntryService implements CartEntryService {
     private final ProductServiceClient productServiceClient;
     private final CartRepository cartRepository;
     @Override
-    public CartEntryModel addCartEntry(CartEntryDto cartEntryDto) {
-        Optional<CartEntryModel> cartEntryModelOptional = cartEntryRepository.findByOwnerAndCode(UserUtil.current(), cartEntryDto.getCode());
-        if (cartEntryModelOptional.isPresent()){
-            return cartEntryModelOptional.get();
-        }
+    public CartEntryModel addCartEntry(CartModel cartModel, CartEntryDto cartEntryDto) {
 
         ProductDtoResponse product = productServiceClient.getProduct(cartEntryDto.getProduct());
 
@@ -33,10 +30,12 @@ public class DefaultCartEntryService implements CartEntryService {
         cartEntryModel.setCode(UUID.randomUUID().toString());
         cartEntryModel.setBasePrice(product.getPrice());
         cartEntryModel.setQuantity(cartEntryDto.getQuantity());
-        cartEntryModel.setTotalPrice(0D);
+        cartEntryModel.setTotalPrice(cartEntryModel.getBasePrice() * cartEntryModel.getQuantity());
         cartEntryModel.setProduct(product.getCode());
-        cartEntryModel.setOwner(UserUtil.current());
-        cartEntryModel.setCart(cartRepository.findByOwner(UserUtil.current()).orElseThrow(RuntimeException::new));
+        cartEntryModel.setOwner(cartModel.getOwner());
+
+        cartEntryModel.setCart(cartModel);
+        cartModel.getEntries().add(cartEntryModel);
 
         return cartEntryRepository.save(cartEntryModel);
     }
@@ -57,12 +56,14 @@ public class DefaultCartEntryService implements CartEntryService {
     }
 
     @Override
-    public void deleteCartEntry(String code) {
-        Optional<CartEntryModel> cartEntryModelOptional = cartEntryRepository.findByOwnerAndCode(UserUtil.current(), code);
+    public void deleteCartEntry(CartModel cartModel, String code) {
+        Optional<CartEntryModel> cartEntryModelOptional  = cartModel.getEntries().stream().filter(e-> e.getCode().equals(code)).findFirst();
         if (cartEntryModelOptional.isEmpty()){
             throw new RuntimeException("Entry Not Found");
         }
-        cartEntryRepository.delete(cartEntryModelOptional.get());
+        CartEntryModel entry = cartEntryModelOptional.get();
+        cartModel.getEntries().remove(entry);
+        cartEntryRepository.delete(entry);
     }
 
     @Override
