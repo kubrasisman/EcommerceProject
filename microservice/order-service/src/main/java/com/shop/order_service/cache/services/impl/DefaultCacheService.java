@@ -37,6 +37,11 @@ public class DefaultCacheService implements CacheService {
     }
 
     @Override
+    public Object extendCache(String prefix, String key, long ttl_hours, TimeUnit timeUnit) {
+        return redisTemplate.expire(keyBuilder(prefix, key), ttl_hours, timeUnit);
+    }
+
+    @Override
     public void removeCache(String prefix, String key) {
         redisTemplate.delete(keyBuilder(prefix, key));
     }

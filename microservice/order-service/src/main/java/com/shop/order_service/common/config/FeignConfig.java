@@ -12,7 +12,7 @@ public class FeignConfig {
     @Bean
     public RequestInterceptor requestInterceptor() {
         return requestTemplate -> {
-            // RequestContextHolder'dan user email'i al
+            // get email from RequestContextHolder
             RequestAttributes attributes = RequestContextHolder.getRequestAttributes();
             String userEmail = (String) attributes.getAttribute("user", 0);
             requestTemplate.header("x-email", userEmail);

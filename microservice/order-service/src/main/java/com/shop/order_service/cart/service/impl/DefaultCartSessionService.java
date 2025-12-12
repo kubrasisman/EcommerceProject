@@ -1,5 +1,6 @@
 package com.shop.order_service.cart.service.impl;
 
+import com.shop.order_service.cache.services.CacheService;
 import com.shop.order_service.cart.dto.response.AddressDtoResponse;
 import com.shop.order_service.cart.dto.response.CartDtoResponse;
 import com.shop.order_service.cart.dto.request.CartEntryDto;
@@ -27,17 +28,16 @@ public class DefaultCartSessionService {
     private final CartService cartService;
     private final CartPopulator cartPopulator;
     private final CustomerServiceClient customerServiceClient;
+    private final CacheService cacheService;
     private static final String CART_SESSION_PREFIX = "cart:";
     private static final long CART_SESSION_TTL_HOURS = 24;
 
     public void saveCartSession(CartDtoResponse cartData) {
-        String key = CART_SESSION_PREFIX + UserUtil.current();
-        redisTemplate.opsForValue().set(key, cartData, CART_SESSION_TTL_HOURS, TimeUnit.HOURS);
+        cacheService.saveCache(CART_SESSION_PREFIX, UserUtil.current(), cartData, CART_SESSION_TTL_HOURS);
     }
 
     public CartDtoResponse getCartSession() {
-        String key = CART_SESSION_PREFIX + UserUtil.current();
-        Object cartData = redisTemplate.opsForValue().get(key);
+        Object cartData = cacheService.getCacheValue(CART_SESSION_PREFIX, UserUtil.current());
 
         if (cartData instanceof CartDtoResponse) {
             return (CartDtoResponse) cartData;
@@ -50,10 +50,11 @@ public class DefaultCartSessionService {
     }
 
     public void addToCart(CartEntryDto cartEntryDto) {
-        Optional<CartEntryModel> cartEntryModelOptional = cartEntryService.findByProduct(cartEntryDto.getProduct());
+        CartModel cartModel = cartService.getCart();
+        Optional<CartEntryModel> cartEntryModelOptional = cartModel.getEntries().stream().filter(e-> e.getProduct().equals(cartEntryDto.getProduct())).findFirst();
         if (cartEntryModelOptional.isPresent()){
             CartEntryModel cartEntryModel = cartEntryModelOptional.get();
-            cartEntryModel.setQuantity(cartEntryModel.getQuantity()+cartEntryDto.getQuantity());
+            cartEntryModel.setQuantity(cartEntryModel.getQuantity() + cartEntryDto.getQuantity());
             CartEntryModel saveCartEntry = cartEntryService.saveCartEntry(cartEntryModel);
             CartModel cart = saveCartEntry.getCart();
             recalculateTotal(cart);
@@ -61,8 +62,7 @@ public class DefaultCartSessionService {
             saveCartSession(data);
             return;
         }
-        CartEntryModel cartEntryModel = cartEntryService.addCartEntry(cartEntryDto);
-        CartModel cartModel = cartEntryModel.getCart();
+        cartEntryService.addCartEntry(cartModel, cartEntryDto);
         recalculateTotal(cartModel);
         CartModel savedCart = cartService.saveCart(cartModel);
         CartDtoResponse data = cartPopulator.toResponseDto(savedCart);
@@ -70,8 +70,8 @@ public class DefaultCartSessionService {
     }
 
     public void removeFromCart(String entry) {
-        cartEntryService.deleteCartEntry(entry);
         CartModel cart = cartService.getCart();
+        cartEntryService.deleteCartEntry(cart, entry);
         recalculateTotal(cart);
         CartModel cartModel = cartService.saveCart(cart);
         CartDtoResponse cartData = cartPopulator.toResponseDto(cartModel);
@@ -88,8 +88,7 @@ public class DefaultCartSessionService {
     }
 
     public void clearCart() {
-        String key = CART_SESSION_PREFIX + UserUtil.current();
-        redisTemplate.delete(key);
+        cacheService.removeCache(CART_SESSION_PREFIX, UserUtil.current());
     }
 
     private void recalculateTotal(CartModel cartModel) {
@@ -105,8 +104,7 @@ public class DefaultCartSessionService {
     }
 
     public void extendSessionTTL() {
-        String key = CART_SESSION_PREFIX + UserUtil.current();
-        redisTemplate.expire(key, CART_SESSION_TTL_HOURS, TimeUnit.HOURS);
+        cacheService.extendCache(CART_SESSION_PREFIX, UserUtil.current(), CART_SESSION_TTL_HOURS, TimeUnit.HOURS);
     }
 
     public void updateAddress(Long id) {

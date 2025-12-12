@@ -18,6 +18,5 @@ import java.util.List;
 public class CartModel extends AbstractOrderModel {
 
     @OneToMany(mappedBy = "cart", cascade = CascadeType.ALL, orphanRemoval = true)
-    @OnDelete(action = OnDeleteAction.SET_NULL)
     private List<CartEntryModel> entries;
 }
