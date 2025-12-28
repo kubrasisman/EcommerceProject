@@ -112,6 +112,7 @@ public class DefaultProductSearchService implements ProductIndexService {
                         .imageUrl(product.getImageUrl())
                         .brand(product.getBrand())
                         .price(product.getPrice())
+                        .categoryCodes(product.getCategoryCodes())
                         .build();
                 documentList.add(productDocument);
             });
