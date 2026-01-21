@@ -1,8 +1,10 @@
 package com.shop.customer_service.authService.util;
 
+import com.shop.customer_service.common.logging.LogMaskingUtil;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -14,6 +16,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Component
+@Slf4j
 public class JwtUtil {
 
     @Value("${jwt.secret}")
@@ -63,14 +66,18 @@ public class JwtUtil {
         claims.put("customerId", customerId);
         claims.put("email", email);
         claims.put("type", "access");
-        return createToken(claims, username, accessTokenExpiration);
+        String token = createToken(claims, username, accessTokenExpiration);
+        log.debug("JWT: Generated access token for customerId: {}, expiration: {}ms", customerId, accessTokenExpiration);
+        return token;
     }
 
     public String generateRefreshToken(String username, String customerId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("customerId", customerId);
         claims.put("type", "refresh");
-        return createToken(claims, username, refreshTokenExpiration);
+        String token = createToken(claims, username, refreshTokenExpiration);
+        log.debug("JWT: Generated refresh token for customerId: {}, expiration: {}ms", customerId, refreshTokenExpiration);
+        return token;
     }
 
     private String createToken(Map<String, Object> claims, String subject, Long expiration) {
@@ -84,14 +91,24 @@ public class JwtUtil {
     }
 
     public Boolean validateToken(String token, String username) {
-        final String extractedUsername = extractUsername(token);
-        return (extractedUsername.equals(username) && !isTokenExpired(token));
+        try {
+            final String extractedUsername = extractUsername(token);
+            boolean isValid = extractedUsername.equals(username) && !isTokenExpired(token);
+            if (!isValid) {
+                log.warn("JWT: Token validation failed - username mismatch or expired, token: {}, user: {}", LogMaskingUtil.maskToken(token),extractedUsername);
+            }
+            return isValid;
+        } catch (Exception e) {
+            log.error("JWT: Token validation failed - unexpected error: {}, token: {}", e.getMessage(), LogMaskingUtil.maskToken(token));
+            return false;
+        }
     }
 
     public Boolean validateToken(String token) {
         try {
             return !isTokenExpired(token);
         } catch (Exception e) {
+            log.error("JWT: Token validation failed - unexpected error: {}, token: {}", e.getMessage(), LogMaskingUtil.maskToken(token));
             return false;
         }
     }
