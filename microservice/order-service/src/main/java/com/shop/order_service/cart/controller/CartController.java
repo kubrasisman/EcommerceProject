@@ -2,12 +2,17 @@ package com.shop.order_service.cart.controller;
 
 import com.shop.order_service.cart.dto.response.CartDtoResponse;
 import com.shop.order_service.cart.dto.request.CartEntryDto;
+import com.shop.order_service.cart.populator.CartPopulator;
+import com.shop.order_service.cart.service.CartService;
 import com.shop.order_service.cart.service.impl.DefaultCartSessionService;
 import com.shop.order_service.payment.type.PaymentMethod;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 
 @RestController
@@ -16,6 +21,8 @@ import org.springframework.web.bind.annotation.*;
 @Slf4j
 public class CartController {
     private final DefaultCartSessionService cartSessionService;
+    private final CartService cartService;
+    private final CartPopulator cartPopulator;
 
     @GetMapping
     public ResponseEntity<CartDtoResponse> getCart() {
@@ -24,6 +31,16 @@ public class CartController {
         cartSessionService.extendSessionTTL();
         log.info("Request completed: GET /api/cart - Status: 200, cartCode: {}", cart.getCode());
         return ResponseEntity.ok(cart);
+    }
+
+    @GetMapping("/all")
+    public ResponseEntity<List<CartDtoResponse>> getAllCarts() {
+        log.info("Request received: GET /api/cart/all");
+        List<CartDtoResponse> carts = cartService.getAllCarts().stream()
+                .map(cartPopulator::toResponseDto)
+                .collect(Collectors.toList());
+        log.info("Request completed: GET /api/cart/all - Status: 200, count: {}", carts.size());
+        return ResponseEntity.ok(carts);
     }
 
     @PostMapping("/add")
@@ -69,5 +86,23 @@ public class CartController {
         CartDtoResponse cart = cartSessionService.getCartSession();
         log.info("Request completed: PUT /api/cart/update/payment/{} - Status: 200 cart: {}", paymentMethod, cart.getCode());
         return ResponseEntity.ok(cart);
+    }
+
+    @DeleteMapping("/admin/{cartCode}")
+    public ResponseEntity<Void> deleteCart(@PathVariable("cartCode") String cartCode) {
+        log.info("Request received: DELETE /api/cart/admin/{}", cartCode);
+        cartService.removeCartByCode(cartCode);
+        log.info("Request completed: DELETE /api/cart/admin/{} - Status: 200", cartCode);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/admin/{cartCode}/entry/{entryCode}")
+    public ResponseEntity<Void> deleteCartEntry(
+            @PathVariable("cartCode") String cartCode,
+            @PathVariable("entryCode") String entryCode) {
+        log.info("Request received: DELETE /api/cart/admin/{}/entry/{}", cartCode, entryCode);
+        cartService.removeEntryFromCart(cartCode, entryCode);
+        log.info("Request completed: DELETE /api/cart/admin/{}/entry/{} - Status: 200", cartCode, entryCode);
+        return ResponseEntity.ok().build();
     }
 }

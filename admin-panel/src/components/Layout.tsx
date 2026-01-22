@@ -20,6 +20,8 @@ import {
   CreditCard,
   Image,
 } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { LoginModal } from "@/components/modal/LoginModal";
 
 interface MenuItem {
   id: string;
@@ -73,9 +75,18 @@ const MENU: MenuItem[] = [
 export default function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
-  const [loggedIn, setLoggedIn] = useState(false);
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
+  const { user, isAuthenticated, logout, isLoading } = useAuth();
 
   const toggleMenu = (id: string) => setOpenMenu(openMenu === id ? null : id);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex bg-slate-50">
@@ -137,8 +148,12 @@ export default function AdminLayout() {
               <Avatar />
               {!collapsed && (
                 <div>
-                  <div className="text-sm font-medium">Admin User</div>
-                  <div className="text-xs text-slate-500">admin@example.com</div>
+                  <div className="text-sm font-medium">
+                    {isAuthenticated ? user?.fullName || "Admin" : "Not logged in"}
+                  </div>
+                  <div className="text-xs text-slate-500">
+                    {isAuthenticated ? user?.email : "Please login"}
+                  </div>
                 </div>
               )}
             </CardContent>
@@ -151,22 +166,23 @@ export default function AdminLayout() {
         <header className="flex items-center justify-between px-6 py-3 border-b bg-white/50 backdrop-blur">
           <h1 className="text-lg font-bold">Admin Panel</h1>
           <div className="flex items-center gap-4">
-            {!loggedIn ? (
-              <Button onClick={() => setLoggedIn(true)} variant="ghost" size="sm">
-                <LogIn className="mr-2" /> Login
+            {!isAuthenticated ? (
+              <Button onClick={() => setLoginModalOpen(true)} variant="ghost" size="sm">
+                <LogIn className="mr-2 h-4 w-4" /> Login
               </Button>
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <button className="flex items-center gap-2 rounded-md p-1 hover:bg-slate-100">
                     <Avatar />
-                    <span className="hidden md:inline text-sm">Fatih Gün</span>
+                    <span className="hidden md:inline text-sm">{user?.fullName}</span>
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent>
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Settings</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => setLoggedIn(false)}>
+                  <DropdownMenuItem disabled>
+                    <span className="text-xs text-gray-500">{user?.email}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={logout}>
                     <LogOut size={14} className="mr-2 inline" /> Logout
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -183,6 +199,9 @@ export default function AdminLayout() {
           © {new Date().getFullYear()} Your Company
         </footer>
       </div>
+
+      {/* Login Modal */}
+      <LoginModal open={loginModalOpen} setOpen={setLoginModalOpen} />
     </div>
   );
 }
