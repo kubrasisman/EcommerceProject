@@ -4,8 +4,8 @@ import { useAppDispatch, useAppSelector } from '@/store/store'
 import { fetchFeaturedProducts, fetchProducts } from '@/store/slices/productSlice'
 import Layout from '@/components/common/Layout'
 import ProductCard from '@/components/common/ProductCard'
+import BannerCarousel from '@/components/home/BannerCarousel'
 import { Skeleton } from '@/components/ui/skeleton'
-import { ChevronRight } from 'lucide-react'
 
 const categories = [
   { 
@@ -43,41 +43,8 @@ export default function HomePage() {
 
   return (
     <Layout>
-      {/* Hero Banner */}
-      <div className="relative bg-gradient-to-r from-[#0f1111] via-[#232f3e] to-[#37475a] text-white">
-        <div className="container mx-auto px-4">
-          <div className="relative h-[400px] flex items-center">
-            {/* Background Pattern */}
-            <div className="absolute inset-0 opacity-10">
-              <div className="grid grid-cols-8 gap-4 h-full">
-                {[...Array(32)].map((_, i) => (
-                  <div key={i} className="bg-white/5 rounded"></div>
-                ))}
-              </div>
-            </div>
-
-            {/* Content */}
-            <div className="relative z-10 max-w-2xl">
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">
-                Welcome to ShopHub
-              </h1>
-              <p className="text-xl mb-6 text-gray-200">
-                Find deals, get rewards and see what's new.
-              </p>
-              <Link 
-                to="/search" 
-                className="inline-flex items-center bg-[#febd69] hover:bg-[#f3a847] text-gray-900 px-6 py-3 rounded-md font-semibold transition-colors"
-              >
-                Shop now
-                <ChevronRight className="ml-2 h-5 w-5" />
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* Gradient Fade */}
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-background to-transparent"></div>
-      </div>
+      {/* Hero Banner Carousel */}
+      <BannerCarousel />
 
       {/* Category Cards */}
       <section className="py-8 -mt-20 relative z-20">

@@ -27,10 +27,12 @@ export default function Navbar() {
   const { products, categories } = useAppSelector((state) => state.products)
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
 
-  // Fetch categories on mount
+  // Fetch categories on mount (only if not already loaded)
   useEffect(() => {
-    dispatch(fetchCategories())
-  }, [dispatch])
+    if (!categories || categories.length === 0) {
+      dispatch(fetchCategories())
+    }
+  }, [dispatch, categories?.length])
 
   // Click outside to close suggestions
   useEffect(() => {

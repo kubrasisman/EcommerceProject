@@ -31,7 +31,7 @@ export const productService = {
 
   // Get featured products
   getFeaturedProducts: async (limit = 8): Promise<Product[]> => {
-    const response = await api.get<ProductListResponse>(`/products?limit=${limit}&order=DESC&sort=rating`)
+    const response = await api.get<ProductListResponse>(`/products?limit=${limit}&order=DESC&sort=id`)
     return response.data.products
   },
 
@@ -46,12 +46,6 @@ export const productService = {
   // Add product review
   addProductReview: async (productId: number, review: { rating: number; comment: string }) => {
     const response = await api.post<Review>(`/products/${productId}/reviews`, review)
-    return response.data
-  },
-
-  // Get related products
-  getRelatedProducts: async (productId: number, limit = 4): Promise<Product[]> => {
-    const response = await api.get<Product[]>(`/products/${productId}/related?limit=${limit}`)
     return response.data
   },
 

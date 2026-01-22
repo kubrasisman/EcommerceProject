@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/store'
-import { fetchProducts, searchProducts } from '@/store/slices/productSlice'
+import { fetchProducts, searchProducts, fetchCategories } from '@/store/slices/productSlice'
 import Layout from '@/components/common/Layout'
 import ProductCard from '@/components/common/ProductCard'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -12,7 +12,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 export default function ProductListingPage() {
   const [searchParams, setSearchParams] = useSearchParams()
   const dispatch = useAppDispatch()
-  const { products, loading, currentPage, totalPage } = useAppSelector((state) => state.products)
+  const { products, loading, currentPage, totalPage, categories } = useAppSelector((state) => state.products)
 
   const [sortBy, setSortBy] = useState('id')
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('DESC')
@@ -21,26 +21,46 @@ export default function ProductListingPage() {
   const query = searchParams.get('q') || undefined
   const pageParam = parseInt(searchParams.get('page') || '0')
 
+  // Load categories if not already loaded
   useEffect(() => {
+    if (!categories || categories.length === 0) {
+      dispatch(fetchCategories())
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch])
 
-    if (query) {
-      dispatch(searchProducts({ 
-        query, 
+  // Helper function to map category name (from URL) to category code
+  const getCategoryCodeFromName = useMemo(() => {
+    return (categoryName: string | undefined): number | undefined => {
+      if (!categoryName || !categories) return undefined
+      const normalizedName = categoryName.toLowerCase()
+      const found = categories.find(
+        c => c.name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-') === normalizedName ||
+             c.name.toLowerCase() === normalizedName
+      )
+      return found?.code
+    }
+  }, [categories])
+
+  useEffect(() => {
+    // Use search-service for keyword search or category filtering
+    if (query || category) {
+      dispatch(searchProducts({
+        keyword: query || undefined,
+        categoryCode: getCategoryCodeFromName(category),
         page: pageParam,
-        limit: 20
+        size: 20
       }))
     } else {
-
-      dispatch(fetchProducts({ 
+      // Use product-service for general product listing (no filters)
+      dispatch(fetchProducts({
         page: pageParam,
         limit: 20,
         sort: sortBy,
-        order: sortOrder,
-        category,
-        search: query
+        order: sortOrder
       }))
     }
-  }, [dispatch, category, query, sortBy, sortOrder, pageParam])
+  }, [dispatch, category, query, sortBy, sortOrder, pageParam, getCategoryCodeFromName])
 
   const handleSortChange = (value: string) => {
     const [field, order] = value.split('-')

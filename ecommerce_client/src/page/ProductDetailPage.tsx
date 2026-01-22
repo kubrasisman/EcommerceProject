@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/store'
-import { fetchProductByCode, fetchRelatedProducts } from '@/store/slices/productSlice'
+import { fetchProductByCode } from '@/store/slices/productSlice'
 import { addToCart } from '@/store/slices/cartSlice'
 import Layout from '@/components/common/Layout'
-import ProductCard from '@/components/common/ProductCard'
 import ReviewSection from '@/components/product/ReviewSection'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -16,7 +15,7 @@ export default function ProductDetailPage() {
   const { id } = useParams<{ id: string }>()
   const dispatch = useAppDispatch()
   const { addToast } = useToast()
-  const { selectedProduct, relatedProducts, loading } = useAppSelector((state) => state.products)
+  const { selectedProduct, loading } = useAppSelector((state) => state.products)
   
   const [selectedImage, setSelectedImage] = useState(0)
   const [quantity, setQuantity] = useState(1)
@@ -25,7 +24,6 @@ export default function ProductDetailPage() {
     if (id) {
       const code = parseInt(id)
       dispatch(fetchProductByCode(code))
-      dispatch(fetchRelatedProducts(code))
     }
   }, [dispatch, id])
 
@@ -231,17 +229,6 @@ export default function ProductDetailPage() {
           />
         </div>
 
-        {/* Related Products */}
-        {relatedProducts.length > 0 && (
-          <div>
-            <h2 className="text-2xl font-bold mb-6">Related Products</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {relatedProducts.map((product) => (
-                <ProductCard key={product.code} product={product} />
-              ))}
-            </div>
-          </div>
-        )}
       </div>
     </Layout>
   )
