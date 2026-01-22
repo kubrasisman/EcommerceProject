@@ -11,6 +11,7 @@ import java.util.Set;
 public class ProductDtoResponse implements Serializable {
     private String code;
     private String name;
+    private String title;
     private String description;
     private String brand;
     private double price;

@@ -1,6 +1,7 @@
 package com.shop.search_service.product.service.impl;
 
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery;
 import co.elastic.clients.elasticsearch._types.query_dsl.QueryBuilders;
 import co.elastic.clients.elasticsearch.core.BulkRequest;
 import co.elastic.clients.elasticsearch.core.BulkResponse;
@@ -9,16 +10,16 @@ import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
 import com.shop.search_service.product.client.ProductServiceClient;
 import com.shop.search_service.product.client.response.ProductPageableResponse;
+import com.shop.search_service.product.dto.response.ProductSearchResponse;
 import com.shop.search_service.product.model.ProductDocument;
 import com.shop.search_service.product.service.ProductIndexService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.logging.Log;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 @Service
@@ -71,16 +72,43 @@ public class DefaultProductSearchService implements ProductIndexService {
     }
 
     @Override
-    public List<ProductDocument> search(String keyword, int page, int size) {
+    public ProductSearchResponse search(String keyword, Long categoryCode, int page, int size) {
         try {
+            log.info("SEARCH: Searching products - keyword: {}, categoryCode: {}, page: {}, size: {}",
+                    keyword, categoryCode, page, size);
+
+            BoolQuery.Builder boolQuery = new BoolQuery.Builder();
+            boolean hasQuery = false;
+
+            // Add keyword search if provided
+            if (keyword != null && !keyword.isBlank()) {
+                boolQuery.must(QueryBuilders.multiMatch()
+                        .query(keyword)
+                        .fields("name", "description", "brand", "title")
+                        .fuzziness("AUTO")
+                        .build()._toQuery()
+                );
+                hasQuery = true;
+            }
+
+            // Add category filter if provided
+            if (categoryCode != null) {
+                boolQuery.filter(QueryBuilders.term()
+                        .field("categoryCodes")
+                        .value(categoryCode)
+                        .build()._toQuery()
+                );
+                hasQuery = true;
+            }
+
+            // If no filters, match all products
+            if (!hasQuery) {
+                boolQuery.must(QueryBuilders.matchAll().build()._toQuery());
+            }
+
             SearchRequest request = SearchRequest.of(s -> s
                     .index(INDEX_NAME)
-                    .query(QueryBuilders.multiMatch()
-                            .query(keyword)
-                            .fields("name", "description", "brand")
-                            .fuzziness("AUTO")
-                            .build()._toQuery()
-                    )
+                    .query(boolQuery.build()._toQuery())
                     .from(page * size)
                     .size(size)
             );
@@ -88,13 +116,32 @@ public class DefaultProductSearchService implements ProductIndexService {
             SearchResponse<ProductDocument> response =
                     elasticsearchClient.search(request, ProductDocument.class);
 
-            return response.hits().hits().stream()
+            List<ProductDocument> products = response.hits().hits().stream()
                     .map(hit -> hit.source())
                     .collect(Collectors.toList());
 
+            long totalHits = response.hits().total() != null ?
+                    response.hits().total().value() : 0;
+            int totalPages = (int) Math.ceil((double) totalHits / size);
+
+            log.info("SEARCH: Found {} products, totalHits: {}, totalPages: {}",
+                    products.size(), totalHits, totalPages);
+
+            return ProductSearchResponse.builder()
+                    .products(products)
+                    .currentPage(page)
+                    .totalPage(totalPages)
+                    .totalElements(totalHits)
+                    .build();
+
         } catch (Exception e) {
-            log.error("Search error: " + e.getMessage(), e);
-            return null;
+            log.error("SEARCH: Search error: {}", e.getMessage(), e);
+            return ProductSearchResponse.builder()
+                    .products(Collections.emptyList())
+                    .currentPage(page)
+                    .totalPage(0)
+                    .totalElements(0L)
+                    .build();
         }
     }
     private List<ProductDocument> getAllProducts() {
@@ -107,6 +154,8 @@ public class DefaultProductSearchService implements ProductIndexService {
             response.getProducts().forEach(product -> {
                 ProductDocument productDocument = ProductDocument.builder()
                         .id(String.valueOf(product.getCode()))
+                        .code(Long.valueOf(product.getCode()))
+                        .title(product.getTitle())
                         .name(product.getName())
                         .description(product.getDescription())
                         .imageUrl(product.getImageUrl())

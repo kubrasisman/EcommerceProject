@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import type { Product, ProductFilter, ProductQueryParams } from '@/types/product.types'
 import type { LoadingState } from '@/types/common.types'
 import { productService } from '@/services/productService'
+import { searchService } from '@/services/searchService'
 import { categoryService } from '@/services/categoryService'
 import type { Category } from '@/types/category.types'
 
@@ -9,7 +10,6 @@ interface ProductState {
     products: Product[]
     featuredProducts: Product[]
     selectedProduct: Product | null
-    relatedProducts: Product[]
     categories: Category[] | null
     currentPage: number
     totalPage: number
@@ -22,7 +22,6 @@ const initialState: ProductState = {
     featuredProducts: [],
     selectedProduct: null,
     categories: [],
-    relatedProducts: [],
     currentPage: 0,
     totalPage: 0,
     loading: 'idle',
@@ -55,22 +54,15 @@ export const fetchFeaturedProducts = createAsyncThunk(
     }
 )
 
-export const fetchRelatedProducts = createAsyncThunk(
-    'products/fetchRelatedProducts',
-    async (productId: number) => {
-        const response = await productService.getRelatedProducts(productId)
-        return response
-    }
-)
-
 export const searchProducts = createAsyncThunk(
     'products/searchProducts',
-    async (params: { query: string; page?: number; limit?: number }) => {
-        const response = await productService.searchProducts(
-            params.query,
-            params.page,
-            params.limit
-        )
+    async (params: { keyword?: string; categoryCode?: number; page?: number; size?: number }) => {
+        const response = await searchService.searchProducts({
+            keyword: params.keyword,
+            categoryCode: params.categoryCode,
+            page: params.page || 0,
+            size: params.size || 20
+        })
         return response
     }
 )
@@ -89,7 +81,6 @@ const productSlice = createSlice({
     reducers: {
         clearSelectedProduct: (state) => {
             state.selectedProduct = null
-            state.relatedProducts = []
         },
         clearProducts: (state) => {
             state.products = []
@@ -141,17 +132,6 @@ const productSlice = createSlice({
             .addCase(fetchFeaturedProducts.rejected, (state, action) => {
                 state.loading = 'failed'
                 state.error = action.error.message || 'Failed to fetch featured products'
-            })
-
-            // Fetch Related Products
-            .addCase(fetchRelatedProducts.pending, (state) => {
-                state.error = null
-            })
-            .addCase(fetchRelatedProducts.fulfilled, (state, action) => {
-                state.relatedProducts = action.payload
-            })
-            .addCase(fetchRelatedProducts.rejected, (state, action) => {
-                state.error = action.error.message || 'Failed to fetch related products'
             })
 
             // Search Products

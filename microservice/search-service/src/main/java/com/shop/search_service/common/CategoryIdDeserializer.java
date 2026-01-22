@@ -17,7 +17,7 @@ public class CategoryIdDeserializer extends JsonDeserializer<Set<Long>> {
         JsonNode node = p.getCodec().readTree(p);
 
         for (JsonNode category : node) {
-            ids.add(category.get("id").asLong());
+            ids.add(category.get("code").asLong());
         }
         return ids;
     }
