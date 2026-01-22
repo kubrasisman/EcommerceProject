@@ -18,6 +18,7 @@ import {
   FileText,
   ShoppingCart,
   CreditCard,
+  Image,
 } from "lucide-react";
 
 interface MenuItem {
@@ -36,6 +37,7 @@ const MENU: MenuItem[] = [
     children: [
       { id: "products", label: "Products", icon: <FileText size={16} />, path: "/products" },
       { id: "categories", label: "Categories", icon: <FileText size={16} />, path: "/categories" },
+      { id: "banners", label: "Banners", icon: <Image size={16} />, path: "/banners" },
     ],
   },
   {
