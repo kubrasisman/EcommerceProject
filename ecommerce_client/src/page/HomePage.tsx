@@ -33,6 +33,7 @@ const categories = [
 export default function HomePage() {
   const dispatch = useAppDispatch()
   const { featuredProducts, loading } = useAppSelector((state) => state.products)
+  const { accessToken } = useAppSelector((state) => state.auth)
 
   useEffect(() => {
     // Load all products for search functionality
@@ -158,27 +159,29 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Sign In Banner */}
-      <section className="py-12 bg-white border-t border-b">
-        <div className="container mx-auto px-4 text-center">
-          <div className="max-w-2xl mx-auto">
-            <h2 className="text-2xl font-bold mb-4">
-              See personalized recommendations
-            </h2>
-            <Link to="/login">
-              <button className="bg-[#ffd814] hover:bg-[#f7ca00] text-gray-900 px-8 py-2 rounded-md font-medium border border-gray-300 shadow-sm">
-                Sign in
-              </button>
-            </Link>
-            <p className="mt-3 text-sm">
-              New customer?{' '}
-              <Link to="/register" className="text-blue-600 hover:text-blue-800 hover:underline">
-                Start here.
+      {/* Sign In Banner - Only show when user is not logged in */}
+      {!accessToken && (
+        <section className="py-12 bg-white border-t border-b">
+          <div className="container mx-auto px-4 text-center">
+            <div className="max-w-2xl mx-auto">
+              <h2 className="text-2xl font-bold mb-4">
+                See personalized recommendations
+              </h2>
+              <Link to="/login">
+                <button className="bg-[#ffd814] hover:bg-[#f7ca00] text-gray-900 px-8 py-2 rounded-md font-medium border border-gray-300 shadow-sm">
+                  Sign in
+                </button>
               </Link>
-            </p>
+              <p className="mt-3 text-sm">
+                New customer?{' '}
+                <Link to="/register" className="text-blue-600 hover:text-blue-800 hover:underline">
+                  Start here.
+                </Link>
+              </p>
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </Layout>
   )
 }
