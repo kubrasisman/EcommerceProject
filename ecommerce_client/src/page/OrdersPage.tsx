@@ -12,23 +12,55 @@ import { Package } from 'lucide-react'
 
 export default function OrdersPage() {
   const dispatch = useAppDispatch()
-  const { orders, loading } = useAppSelector((state) => state.orders)
+  const { orders, loading, error } = useAppSelector((state) => state.orders)
+
   useEffect(() => {
-
-      dispatch(fetchOrdersByEmail())
-
+    console.log('OrdersPage: Fetching orders...')
+    dispatch(fetchOrdersByEmail())
+      .unwrap()
+      .then((data) => {
+        console.log('OrdersPage: Orders fetched successfully', data)
+      })
+      .catch((err) => {
+        console.error('OrdersPage: Error fetching orders', err)
+      })
   }, [dispatch])
 
   const getStatusColor = (status: string) => {
-    const colors = {
-      pending: 'default',
-      confirmed: 'default',
-      processing: 'default',
-      shipped: 'default',
-      delivered: 'success',
-      cancelled: 'destructive',
+    const colors: Record<string, string> = {
+      READY: 'default',
+      PAID: 'default',
+      PROCESSING: 'secondary',
+      SHIPPED: 'outline',
+      DELIVERED: 'success',
+      CANCELED: 'destructive',
+      RETURN_REQUESTED: 'warning',
+      RETURNED: 'secondary',
+      REFUNDED: 'secondary',
     }
-    return colors[status as keyof typeof colors] || 'default'
+    return colors[status] || 'default'
+  }
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      READY: 'Hazırlanıyor',
+      PAID: 'Ödendi',
+      PROCESSING: 'İşleniyor',
+      SHIPPED: 'Kargoya Verildi',
+      DELIVERED: 'Teslim Edildi',
+      CANCELED: 'İptal Edildi',
+      RETURN_REQUESTED: 'İade Talebi',
+      RETURNED: 'İade Edildi',
+      REFUNDED: 'Geri Ödendi',
+    }
+    return labels[status] || status
+  }
+
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('tr-TR', {
+      style: 'currency',
+      currency: 'TRY',
+    }).format(price)
   }
 
   if (loading === 'loading') {
@@ -41,6 +73,29 @@ export default function OrdersPage() {
               <Skeleton key={i} className="h-32 w-full" />
             ))}
           </div>
+        </div>
+      </Layout>
+    )
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="container mx-auto px-4 py-12">
+          <h1 className="text-3xl font-bold mb-8">Siparişlerim</h1>
+          <Card className="border-red-200 bg-red-50">
+            <CardContent className="p-6 text-center">
+              <div className="text-red-600 text-4xl mb-4">⚠️</div>
+              <h3 className="text-lg font-semibold text-red-800">Siparişler yüklenemedi</h3>
+              <p className="mt-2 text-red-600">{error}</p>
+              <button
+                onClick={() => dispatch(fetchOrdersByEmail())}
+                className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Tekrar Dene
+              </button>
+            </CardContent>
+          </Card>
         </div>
       </Layout>
     )
@@ -77,7 +132,7 @@ export default function OrdersPage() {
                       <div className="flex items-center gap-4">
                         <h3 className="font-semibold">Sipariş #{order.code}</h3>
                         <Badge variant={getStatusColor(order.status) as any}>
-                          {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                          {getStatusLabel(order.status)}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
@@ -88,15 +143,17 @@ export default function OrdersPage() {
                         })}
                       </p>
                       <p className="text-sm text-muted-foreground">
-                        {order.entries.length} ürün
+                        {order.entries?.length || 0} ürün
                       </p>
-                      <p className="text-sm text-muted-foreground">
-                        Teslimat: {order.address.addressTitle}
-                      </p>
+                      {order.address && (
+                        <p className="text-sm text-muted-foreground">
+                          Teslimat: {order.address.addressTitle}
+                        </p>
+                      )}
                     </div>
 
                     <div className="text-right">
-                      <p className="text-2xl font-bold">${order.totalPrice.toFixed(2)}</p>
+                      <p className="text-2xl font-bold">{formatPrice(order.totalPrice)}</p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {order.paymentMethod === 'CREDIT_CARD' && 'Kredi Kartı'}
                         {order.paymentMethod === 'WIRE_TRANSFER' && 'Havale/EFT'}
@@ -104,24 +161,28 @@ export default function OrdersPage() {
                     </div>
                   </div>
 
-                  <div className="mt-4 flex gap-2 overflow-x-auto">
-                    {order.entries.slice(0, 4).map((entry, index) => (
-                      <div key={index}>
-                        {entry.product.imageUrl && (
-                          <img
-                            src={entry.product.imageUrl}
-                            alt={entry.product.name}
-                            className="h-16 w-16 rounded object-cover"
-                          />
-                        )}
-                      </div>
-                    ))}
-                    {order.entries.length > 4 && (
-                      <div className="h-16 w-16 rounded bg-muted flex items-center justify-center text-sm text-muted-foreground">
-                        +{order.entries.length - 4}
-                      </div>
-                    )}
-                  </div>
+                  {order.entries && order.entries.length > 0 && (
+                    <div className="mt-4 flex gap-2 overflow-x-auto">
+                      {order.entries.slice(0, 4).map((entry, index) => (
+                        <div key={index} className="h-16 w-16 rounded bg-muted flex items-center justify-center overflow-hidden">
+                          {entry.product?.imageUrl && entry.product.imageUrl.startsWith('http') ? (
+                            <img
+                              src={entry.product.imageUrl}
+                              alt={entry.product?.name || 'Ürün'}
+                              className="h-full w-full object-cover"
+                            />
+                          ) : (
+                            <Package className="h-6 w-6 text-muted-foreground" />
+                          )}
+                        </div>
+                      ))}
+                      {order.entries.length > 4 && (
+                        <div className="h-16 w-16 rounded bg-muted flex items-center justify-center text-sm text-muted-foreground">
+                          +{order.entries.length - 4}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             </Link>

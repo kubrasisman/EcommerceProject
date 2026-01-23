@@ -1,12 +1,15 @@
 import type { CartItem } from './cart.types'
 
-export type OrderStatus = 
-  | 'pending' 
-  | 'confirmed' 
-  | 'processing' 
-  | 'shipped' 
-  | 'delivered' 
-  | 'cancelled'
+export type OrderStatus =
+  | 'READY'
+  | 'PAID'
+  | 'PROCESSING'
+  | 'SHIPPED'
+  | 'DELIVERED'
+  | 'CANCELED'
+  | 'RETURN_REQUESTED'
+  | 'RETURNED'
+  | 'REFUNDED'
 
 export type PaymentStatus = 
   | 'pending' 

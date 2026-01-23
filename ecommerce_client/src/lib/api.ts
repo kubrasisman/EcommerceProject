@@ -32,22 +32,29 @@ const processQueue = (error: any, token: string | null = null) => {
 api.interceptors.request.use((config) => {
   const accessToken = localStorage.getItem('accessToken')
   const customerId = localStorage.getItem('customerId')
-  
+
+  console.log(`[API Request] ${config.method?.toUpperCase()} ${config.url}`)
+  console.log('[API Request] Token:', accessToken ? 'Present' : 'Missing')
+
   if (accessToken) {
     config.headers.Authorization = `Bearer ${accessToken}`
   }
-  
+
   if (customerId) {
     config.headers['X-Customer-Id'] = customerId
   }
-  
+
   return config
 })
 
 // Response interceptor for error handling and token refresh
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    console.log(`[API Response] ${response.config.url} - Status: ${response.status}`)
+    return response
+  },
   async (error) => {
+    console.error(`[API Error] ${error.config?.url} - Status: ${error.response?.status}`, error.message)
     const originalRequest = error.config
 
     // If error is 401 and we haven't tried to refresh yet
