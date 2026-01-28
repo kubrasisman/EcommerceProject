@@ -26,6 +26,21 @@ public class CategoryModel {
     @Column(name = "description")
     private String description;
 
+    @ManyToMany
+    @JoinTable(
+        name = "category_parents",
+        joinColumns = @JoinColumn(name = "category_id"),
+        inverseJoinColumns = @JoinColumn(name = "parent_category_id")
+    )
+    private Set<CategoryModel> parentCategories = new HashSet<>();
+
+    @ManyToMany(mappedBy = "parentCategories")
+    private Set<CategoryModel> children = new HashSet<>();
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private CategoryType type = CategoryType.CATEGORY;
+
     @ManyToMany(mappedBy = "categories")
     @OnDelete(action = OnDeleteAction.SET_NULL)
     private Set<ProductModel> products = new HashSet<>();

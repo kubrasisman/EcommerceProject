@@ -56,4 +56,30 @@ public class CategoryController {
         log.info("Request completed: DELETE /api/categories/remove/{} - Status: 200, success: {}", id, result);
         return result;
     }
+
+    // ==================== Hierarchy Endpoints ===================
+    @GetMapping("/hierarchy")
+    public List<CategoryDtoResponse> getCategoryHierarchy() {
+        log.info("Request received: GET /api/categories/hierarchy");
+        List<CategoryDtoResponse> response = categoryService.getCategoryHierarchy();
+        log.info("Request completed: GET /api/categories/hierarchy - Status: 200, root count: {}", response.size());
+        return response;
+    }
+
+    @GetMapping("/{code}/descendant-codes")
+    public List<Long> getDescendantCodes(@PathVariable Long code) {
+        log.info("Request received: GET /api/categories/{}/descendant-codes", code);
+        List<Long> response = categoryService.getAllDescendantCodes(code);
+        log.info("Request completed: GET /api/categories/{}/descendant-codes - Status: 200, count: {}", code, response.size());
+        return response;
+    }
+
+    // ==================== Brand Endpoints ====================
+    @GetMapping("/brands")
+    public List<CategoryDtoResponse> getBrands() {
+        log.info("Request received: GET /api/categories/brands");
+        List<CategoryDtoResponse> response = categoryService.getBrands();
+        log.info("Request completed: GET /api/categories/brands - Status: 200, count: {}", response.size());
+        return response;
+    }
 }

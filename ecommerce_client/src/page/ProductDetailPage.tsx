@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import { useAppDispatch, useAppSelector } from '@/store/store'
-import { fetchProductByCode } from '@/store/slices/productSlice'
+import { fetchProductByCode, fetchProducts } from '@/store/slices/productSlice'
 import { addToCart } from '@/store/slices/cartSlice'
 import Layout from '@/components/common/Layout'
 import ReviewSection from '@/components/product/ReviewSection'
+import RelatedProducts from '@/components/product/RelatedProducts'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -24,6 +25,8 @@ export default function ProductDetailPage() {
     if (id) {
       const code = parseInt(id)
       dispatch(fetchProductByCode(code))
+      // Fetch products for related products section
+      dispatch(fetchProducts({ page: 0, limit: 50 }))
     }
   }, [dispatch, id])
 
@@ -228,6 +231,13 @@ export default function ProductDetailPage() {
             totalReviews={selectedProduct.reviewCount || 0}
           />
         </div>
+
+        {/* Related Products */}
+        <RelatedProducts
+          currentProductCode={selectedProduct.code}
+          categoryNames={selectedProduct.categoryCodes?.map(c => c.name) || []}
+          brand={selectedProduct.brand}
+        />
 
       </div>
     </Layout>

@@ -8,6 +8,12 @@ export const categoryService = {
     return response.data
   },
 
+  // Get category hierarchy (full tree with children)
+  getHierarchy: async (): Promise<Category[]> => {
+    const response = await api.get<Category[]>('/categories/hierarchy')
+    return response.data
+  },
+
   // Get single category by code
   getCategoryByCode: async (code: number): Promise<Category> => {
     const response = await api.get<Category>(`/categories/${code}`)
@@ -29,6 +35,12 @@ export const categoryService = {
   // Delete category
   deleteCategory: async (id: number): Promise<boolean> => {
     const response = await api.delete<boolean>(`/categories/remove/${id}`)
+    return response.data
+  },
+
+  // Get brands (children of code=2)
+  getBrands: async (): Promise<Category[]> => {
+    const response = await api.get<Category[]>('/categories/brands')
     return response.data
   },
 }

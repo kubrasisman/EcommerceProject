@@ -8,6 +8,7 @@ import co.elastic.clients.elasticsearch.core.BulkResponse;
 import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
+import com.shop.search_service.product.client.CategoryServiceClient;
 import com.shop.search_service.product.client.ProductServiceClient;
 import com.shop.search_service.product.client.response.ProductPageableResponse;
 import com.shop.search_service.product.dto.response.ProductSearchResponse;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 public class DefaultProductSearchService implements ProductIndexService {
     private final ElasticsearchClient elasticsearchClient;
     private final ProductServiceClient productServiceClient;
+    private final CategoryServiceClient categoryServiceClient;
 
     private final String INDEX_NAME = "products";
 
@@ -91,13 +93,31 @@ public class DefaultProductSearchService implements ProductIndexService {
                 hasQuery = true;
             }
 
-            // Add category filter if provided
+            // Add category filter if provided (including all descendant categories)
             if (categoryCode != null) {
-                boolQuery.filter(QueryBuilders.term()
-                        .field("categoryCodes")
-                        .value(categoryCode)
-                        .build()._toQuery()
-                );
+                try {
+                    // Get all descendant category codes
+                    List<Long> allCategoryCodes = categoryServiceClient.getDescendantCodes(categoryCode);
+                    log.info("SEARCH: Category {} has {} total codes (including descendants): {}",
+                            categoryCode, allCategoryCodes.size(), allCategoryCodes);
+
+                    // Use terms query to match any of the category codes
+                    boolQuery.filter(QueryBuilders.terms()
+                            .field("categoryCodes")
+                            .terms(t -> t.value(allCategoryCodes.stream()
+                                    .map(code -> co.elastic.clients.elasticsearch._types.FieldValue.of(code))
+                                    .collect(Collectors.toList())))
+                            .build()._toQuery()
+                    );
+                } catch (Exception e) {
+                    log.warn("SEARCH: Failed to get descendant codes, falling back to single category: {}", e.getMessage());
+                    // Fallback to single category if feign call fails
+                    boolQuery.filter(QueryBuilders.term()
+                            .field("categoryCodes")
+                            .value(categoryCode)
+                            .build()._toQuery()
+                    );
+                }
                 hasQuery = true;
             }
 
