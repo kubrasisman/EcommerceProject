@@ -4,7 +4,6 @@
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-green)
 ![React](https://img.shields.io/badge/React-19-blue)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
-![License](https://img.shields.io/badge/License-MIT-yellow)
 
 A modern, scalable, and fully-featured e-commerce platform built with a microservices architecture. Includes frontend applications, multiple backend microservices, and a robust database layer.
 
