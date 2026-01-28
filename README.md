@@ -1,5 +1,11 @@
 # E-Commerce Platform
 
+![Java](https://img.shields.io/badge/Java-21-orange)
+![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.5.6-green)
+![React](https://img.shields.io/badge/React-19-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
+![License](https://img.shields.io/badge/License-MIT-yellow)
+
 A modern, scalable, and fully-featured e-commerce platform built with a microservices architecture. Includes frontend applications, multiple backend microservices, and a robust database layer.
 
 ## Overview
@@ -11,6 +17,7 @@ Project is a production-ready e-commerce solution featuring:
 - **Real-time Updates** - Redis-powered session management
 - **Secure Authentication** - JWT-based authentication with Spring Security
 - **API Gateway** - Route management and request filtering
+- **Full-text Search** - Elasticsearch-powered product search
 
 ## Project Structure
 
@@ -38,6 +45,7 @@ ecommerce/
 │   ├── product-service/        # Product & category management
 │   ├── order-service/          # Order & cart management
 │   ├── media-service/          # File/media handling
+│   ├── search-service/         # Elasticsearch search
 │   ├── gateway-service/        # API Gateway & routing
 │   ├── eureka-service/         # Service discovery
 │   └── pom.xml
@@ -71,82 +79,113 @@ ecommerce/
 - **MapStruct 1.5.5** - Object mapping
 - **Redis** - Session & caching
 - **MySQL** - Primary database
+- **Elasticsearch** - Full-text search
 - **JWT (JJWT)** - Token-based authentication
 - **Lombok** - Boilerplate reduction
 
-
 ## Core Services
 
-  ### Customer Service
-  - User registration and authentication
-  - Address management
-  - Profile management
-  - JWT token handling
-  - Redis caching for sessions
+### Customer Service
+- User registration and authentication
+- Address management
+- Profile management
+- JWT token handling
+- Redis caching for sessions
 
+### Product Service
+- Product catalog management
+- Category management
+- Product filtering and search
+- Product details and metadata
 
-  ### Product Service
-  - Product catalog management
-  - Category management
-  - Product filtering and search
-  - Product details and metadata
+### Order Service
+- Shopping cart management
+- Order creation and management
+- Order status tracking
+- Payment processing
+- Cart session management with Redis
+- Cart-to-Order conversion using MapStruct
+- Session-based cart persistence via Redis
+- Real-time cart total calculation
+- User-specific order retrieval
+- Order code generation (ORD-XXXXXXXX)
 
+### Media Service
+- File upload and storage
+- Media URL resolution
+- Local and cloud storage strategies
 
-  ### Order Service
-  - Shopping cart management
-  - Order creation and management
-  - Order status tracking
-  - Payment processing
-  - Cart session management with Redis
+### Search Service
+- Elasticsearch integration
+- Full-text product search
+- Auto-complete suggestions
+- Product indexing from Product Service
+- Port: 9020
 
+### Gateway Service
+- Request routing to microservices
+- JWT validation and authentication
+- Cross-cutting concerns (CORS, logging)
+- Service discovery integration
 
-  **Key Features:**
-  - Cart-to-Order conversion using MapStruct
-  - Session-based cart persistence via Redis
-  - Real-time cart total calculation
-  - User-specific order retrieval
-  - Order code generation (ORD-XXXXXXXX)
+### Eureka Service
+- Service discovery and registration
+- Load balancing
+- Health checking
+- Dynamic service management
 
-  ### Media Service
-  - File upload and storage
-  - Media URL resolution
-  - Local and cloud storage strategies
+### Admin Panel
+Administrative dashboard for:
+- Product management (CRUD)
+- Category management
+- Order management
+- User management
+- Analytics and reporting
 
-  ### Gateway Service
-  - Request routing to microservices
-  - JWT validation and authentication
-  - Cross-cutting concerns (CORS, logging)
-  - Service discovery integration
+## API Endpoints
 
-  ### Eureka Service
-  - Service discovery and registration
-  - Load balancing
-  - Health checking
-  - Dynamic service management
-
- 
-  ### Admin Panel
-  Administrative dashboard for:
-  - Product management (CRUD)
-  - Category management
-  - Order management
-  - User management
-  - Analytics and reporting
-
+| Service | Port | Endpoints | Auth |
+|---------|------|-----------|------|
+| Gateway | 8888 | /* (proxy) | Mixed |
+| Customer | 8082 | /api/auth, /api/customers | Mixed |
+| Product | 8090 | /api/products, /api/categories | Public |
+| Order | 8081 | /api/cart, /api/orders | Protected |
+| Media | 8055 | /api/mediaservice | Protected |
+| Search | 9020 | /api/search | Public |
+| Eureka | 8761 | / (dashboard) | - |
 
 ## Getting Started
 
-  ### Prerequisites
-  - **Frontend:**
-    - Node.js 18+ and npm/yarn
+### Prerequisites
 
-    - **Backend:**
-      - Java 21
-      - Maven 3.8+
-      - Mysql
+**Frontend:**
+- Node.js 18+ and npm/yarn
 
+**Backend:**
+- Java 21
+- Maven 3.8+
+- MySQL
+- Redis
+- Elasticsearch (optional, for search)
 
-### Installation
+### Quick Start with Docker
+
+#### Prerequisites
+- Docker & Docker Compose
+
+#### Start Infrastructure
+```bash
+cd microservice/docker
+docker-compose up -d
+```
+
+This starts:
+- MySQL (3306)
+- Redis (6379)
+- Elasticsearch (9200)
+
+### Manual Installation
+
 #### Frontend Setup
 
 1. **E-Commerce Client:**
@@ -198,15 +237,22 @@ cd microservice/media-service
 mvn spring-boot:run
 ```
 
-6. **Start Gateway Service (last):**
+6. **Start Search Service (optional):**
+```bash
+cd microservice/search-service
+mvn spring-boot:run
+```
+
+7. **Start Gateway Service (last):**
 ```bash
 cd microservice/gateway-service
 mvn spring-boot:run
 ```
-Access API Gateway: `http://localhost:8080`
+Access API Gateway: `http://localhost:8888`
 
-### Environment Variables
-Configure database, Redis, and service ports in each microservice's `application.properties`
+## Environment Variables
+
+### Backend (application.properties)
 
 
 ## Microservices Communication
@@ -232,31 +278,66 @@ public interface ProductServiceClient {
 - Product catalog caching
 - User authentication state
 
-
 ## Code Standards
 
-  ### Frontend
-  - TypeScript for type safety
-  - ESLint for linting
-  - Functional components with React Hooks
-  - Redux Toolkit for state management
-  - Shadcn/UI component patterns
+### Frontend
+- TypeScript for type safety
+- ESLint for linting
+- Functional components with React Hooks
+- Redux Toolkit for state management
+- Shadcn/UI component patterns
 
-  ### Backend
-  - Spring Boot best practices
-  - MapStruct for object mapping
-  - Lombok for boilerplate reduction
-  - REST API conventions
-  - Proper exception handling
-  - Transaction management with @Transactional
+### Backend
+- Spring Boot best practices
+- MapStruct for object mapping
+- Lombok for boilerplate reduction
+- REST API conventions
+- Proper exception handling
+- Transaction management with @Transactional
 
+## Security Considerations
 
-  ## Security Considerations
+- JWT token expiration
+- Password hashing with Spring Security
+- CORS configuration
+- SQL injection prevention via JPA
+- XSS protection
+- CSRF tokens
+- Rate limiting ready
 
-  - JWT token expiration
-  - Password hashing with Spring Security
-  - CORS configuration
-  - SQL injection prevention via JPA
-  - XSS protection
-  - CSRF tokens
-  - Rate limiting ready
+## Troubleshooting
+
+### Common Issues
+
+**Eureka: Service not registered**
+- Check if Eureka Service is running first
+- Verify `eureka.client.service-url.defaultZone` in application.properties
+
+**Redis: Connection refused**
+- Ensure Redis is running: `redis-cli ping`
+- Check host/port configuration
+
+**JWT: Invalid signature**
+- Ensure all services use the same `jwt.secret`
+- Check token expiration
+
+**Feign: 404 Not Found**
+- Ensure target service is registered with Eureka
+- Check service name in @FeignClient annotation
+
+**Elasticsearch: Connection error**
+- Verify Elasticsearch is running on port 9200
+- Check cluster health: `curl http://localhost:9200/_cluster/health`
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+### Code Style
+- Backend: Follow Spring Boot conventions
+- Frontend: ESLint + Prettier
+- Commits: Use conventional commit messages
