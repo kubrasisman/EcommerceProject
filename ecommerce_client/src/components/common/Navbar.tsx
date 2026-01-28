@@ -2,11 +2,12 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ShoppingCart, Search, Menu, MapPin, ChevronDown, User as UserIcon, Package, LogOut } from 'lucide-react'
 import { useState, useEffect, useRef, useMemo } from 'react'
 import { useAppSelector, useAppDispatch } from '@/store/store'
-import { fetchCategories } from '@/store/slices/productSlice'
+import { fetchCategories, fetchCategoryHierarchy, fetchBrands } from '@/store/slices/productSlice'
 import { logoutUser } from '@/store/slices/authSlice'
 import { clearCartLocal } from '@/store/slices/cartSlice'
 import { Button } from '@/components/ui/button'
 import MiniCart from '@/components/cart/MiniCart'
+import CategoryMegaMenu from '@/components/common/CategoryMegaMenu'
 import type { Product } from '@/types/product.types'
 
 export default function Navbar() {
@@ -14,6 +15,7 @@ export default function Navbar() {
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false)
+  const [isBrandsMenuOpen, setIsBrandsMenuOpen] = useState(false)
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [suggestions, setSuggestions] = useState<Product[]>([])
@@ -24,15 +26,28 @@ export default function Navbar() {
 
   const { user, accessToken } = useAppSelector((state) => state.auth)
   const { items } = useAppSelector((state) => state.cart)
-  const { products, categories } = useAppSelector((state) => state.products)
+  const { products, categories, categoryHierarchy, brands } = useAppSelector((state) => state.products)
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
 
-  // Fetch categories on mount (only if not already loaded)
+  // Get main categories (children of root category with code=1)
+  const mainCategories = useMemo(() => {
+    if (!categoryHierarchy || categoryHierarchy.length === 0) return []
+    const rootCategory = categoryHierarchy.find(cat => cat.code === 1)
+    return rootCategory?.children || []
+  }, [categoryHierarchy])
+
+  // Fetch categories and brands on mount (only if not already loaded)
   useEffect(() => {
     if (!categories || categories.length === 0) {
       dispatch(fetchCategories())
     }
-  }, [dispatch, categories?.length])
+    if (!categoryHierarchy || categoryHierarchy.length === 0) {
+      dispatch(fetchCategoryHierarchy())
+    }
+    if (!brands || brands.length === 0) {
+      dispatch(fetchBrands())
+    }
+  }, [dispatch, categories?.length, categoryHierarchy?.length, brands?.length])
 
   // Click outside to close suggestions
   useEffect(() => {
@@ -46,18 +61,34 @@ export default function Navbar() {
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // Format price in TRY
+  const formatPrice = (price: number) => {
+    return new Intl.NumberFormat('tr-TR', {
+      style: 'currency',
+      currency: 'TRY',
+    }).format(price)
+  }
+
   // Memoized search suggestions to prevent infinite loops
   const filteredSuggestions = useMemo(() => {
     if (searchQuery.trim().length >= 2 && products.length > 0) {
-      return products.filter(
-        (product) =>
+      return products.filter((product) => {
+        // Text match
+        const textMatch =
           product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           product.categoryCodes.some(cat => cat.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
           product.brand?.toLowerCase().includes(searchQuery.toLowerCase())
-      ).slice(0, 8)
+
+        // Category match (if category is selected)
+        const categoryMatch =
+          selectedCategory === 'All' ||
+          product.categoryCodes.some(cat => cat.name === selectedCategory)
+
+        return textMatch && categoryMatch
+      }).slice(0, 8)
     }
     return []
-  }, [searchQuery, products.length])
+  }, [searchQuery, products.length, selectedCategory])
 
   // Update suggestions when filtered results change
   useEffect(() => {
@@ -72,8 +103,15 @@ export default function Navbar() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`)
+    if (searchQuery.trim() || selectedCategory !== 'All') {
+      const params = new URLSearchParams()
+      if (searchQuery.trim()) {
+        params.set('q', searchQuery)
+      }
+      if (selectedCategory !== 'All') {
+        params.set('category', selectedCategory.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-'))
+      }
+      navigate(`/search?${params.toString()}`)
       setSearchQuery('')
       setShowSuggestions(false)
     }
@@ -204,7 +242,7 @@ export default function Navbar() {
 
                         {/* Price */}
                         <div className="flex-shrink-0">
-                          <span className="text-sm font-bold">${product.price.toFixed(2)}</span>
+                          <span className="text-sm font-bold">{formatPrice(product.price)}</span>
                         </div>
                       </button>
                     ))}
@@ -341,7 +379,7 @@ export default function Navbar() {
         <div className="bg-[#232f3e] border-t border-gray-700">
           <div className="container mx-auto px-4">
             <div className="flex items-center h-10 gap-6 text-sm">
-              {/* All Categories Dropdown */}
+              {/* All Categories Dropdown with Mega Menu */}
               <div className="relative">
                 <button
                   onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
@@ -350,41 +388,82 @@ export default function Navbar() {
                   <Menu className="h-4 w-4" />
                   All
                 </button>
-                
+
                 {isCategoryMenuOpen && (
                   <>
-                    <div 
-                      className="fixed inset-0 z-10" 
+                    <div
+                      className="fixed inset-0 z-10"
                       onClick={() => setIsCategoryMenuOpen(false)}
                     />
-                    <div className="absolute top-full left-0 mt-1 w-64 bg-white text-gray-900 shadow-lg rounded-md z-20">
-                      {categories && categories.map((category) => (
-                        <Link
-                          key={category.code}
-                          to={`/search?category=${category.name.toLowerCase().replace(' & ', '-').replace(' ', '-')}`}
-                          onClick={() => setIsCategoryMenuOpen(false)}
-                          className="block px-4 py-3 hover:bg-gray-100 border-b border-gray-200 last:border-b-0"
-                        >
-                          {category.name}
-                        </Link>
-                      ))}
-                    </div>
+                    {mainCategories && mainCategories.length > 0 ? (
+                      <CategoryMegaMenu
+                        categories={mainCategories}
+                        onClose={() => setIsCategoryMenuOpen(false)}
+                      />
+                    ) : (
+                      <div className="absolute top-full left-0 mt-1 w-64 bg-white text-gray-900 shadow-lg rounded-md z-20">
+                        {categories && categories.map((category) => (
+                          <Link
+                            key={category.code}
+                            to={`/search?categoryCode=${category.code}`}
+                            onClick={() => setIsCategoryMenuOpen(false)}
+                            className="block px-4 py-3 hover:bg-gray-100 border-b border-gray-200 last:border-b-0"
+                          >
+                            {category.name}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
                   </>
                 )}
               </div>
 
               {/* Category Links */}
               <div className="hidden lg:flex items-center gap-6">
-                {categories && categories.slice(0, 5).map((category) => (
+                {mainCategories && mainCategories.slice(0, 5).map((category) => (
                   <Link
                     key={category.code}
-                    to={`/search?category=${category.name.toLowerCase().replace(' & ', '-').replace(' ', '-')}`}
+                    to={`/search?categoryCode=${category.code}`}
                     className="hover:outline hover:outline-1 hover:outline-white px-2 py-1 rounded whitespace-nowrap"
                   >
                     {category.name}
                   </Link>
                 ))}
               </div>
+
+              {/* Brands Dropdown */}
+              {brands && brands.length > 0 && (
+                <div className="relative hidden md:block">
+                  <button
+                    onClick={() => setIsBrandsMenuOpen(!isBrandsMenuOpen)}
+                    className="flex items-center gap-1 hover:outline hover:outline-1 hover:outline-white px-2 py-1 rounded whitespace-nowrap"
+                  >
+                    Brands
+                    <ChevronDown className="h-3 w-3" />
+                  </button>
+
+                  {isBrandsMenuOpen && (
+                    <>
+                      <div
+                        className="fixed inset-0 z-10"
+                        onClick={() => setIsBrandsMenuOpen(false)}
+                      />
+                      <div className="absolute top-full left-0 mt-1 w-64 bg-white text-gray-900 shadow-lg rounded-md z-20 max-h-96 overflow-y-auto">
+                        {brands.map((brand) => (
+                          <Link
+                            key={brand.code}
+                            to={`/search?categoryCode=${brand.code}`}
+                            onClick={() => setIsBrandsMenuOpen(false)}
+                            className="block px-4 py-3 hover:bg-gray-100 border-b border-gray-200 last:border-b-0"
+                          >
+                            {brand.name}
+                          </Link>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
 
               {/* Today's Deals */}
               <Link
@@ -422,17 +501,35 @@ export default function Navbar() {
                 )}
 
                 {/* Categories */}
-                <div className="font-bold mb-2">Kategorilere Göre Alışveriş</div>
-                {categories && categories.map((category) => (
+                <div className="font-bold mb-2">Kategorilere Gore Alisveris</div>
+                {mainCategories && mainCategories.map((category) => (
                   <Link
                     key={category.code}
-                    to={`/search?category=${category.name.toLowerCase().replace(' & ', '-').replace(' ', '-')}`}
+                    to={`/search?categoryCode=${category.code}`}
                     onClick={() => setIsMenuOpen(false)}
                     className="block py-2 px-3 hover:bg-gray-100 rounded"
                   >
                     {category.name}
                   </Link>
                 ))}
+
+                {/* Brands */}
+                {brands && brands.length > 0 && (
+                  <>
+                    <div className="border-t pt-3 mt-3" />
+                    <div className="font-bold mb-2">Markalar</div>
+                    {brands.map((brand) => (
+                      <Link
+                        key={brand.code}
+                        to={`/search?categoryCode=${brand.code}`}
+                        onClick={() => setIsMenuOpen(false)}
+                        className="block py-2 px-3 hover:bg-gray-100 rounded"
+                      >
+                        {brand.name}
+                      </Link>
+                    ))}
+                  </>
+                )}
 
                 <div className="border-t pt-3 mt-3">
                   <Link

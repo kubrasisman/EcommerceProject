@@ -11,6 +11,8 @@ interface ProductState {
     featuredProducts: Product[]
     selectedProduct: Product | null
     categories: Category[] | null
+    categoryHierarchy: Category[] | null
+    brands: Category[] | null
     currentPage: number
     totalPage: number
     loading: LoadingState
@@ -22,6 +24,8 @@ const initialState: ProductState = {
     featuredProducts: [],
     selectedProduct: null,
     categories: [],
+    categoryHierarchy: null,
+    brands: null,
     currentPage: 0,
     totalPage: 0,
     loading: 'idle',
@@ -71,6 +75,22 @@ export const fetchCategories = createAsyncThunk(
     'products/fetchCategories',
     async () => {
         const response = await categoryService.getAllCategories()
+        return response
+    }
+)
+
+export const fetchCategoryHierarchy = createAsyncThunk(
+    'products/fetchCategoryHierarchy',
+    async () => {
+        const response = await categoryService.getHierarchy()
+        return response
+    }
+)
+
+export const fetchBrands = createAsyncThunk(
+    'products/fetchBrands',
+    async () => {
+        const response = await categoryService.getBrands()
         return response
     }
 )
@@ -159,6 +179,28 @@ const productSlice = createSlice({
             })
             .addCase(fetchCategories.rejected, (state, action) => {
                 state.error = action.error.message || 'Failed to fetch related products'
+            })
+
+            // Fetch Category Hierarchy
+            .addCase(fetchCategoryHierarchy.pending, (state) => {
+                state.error = null
+            })
+            .addCase(fetchCategoryHierarchy.fulfilled, (state, action) => {
+                state.categoryHierarchy = action.payload
+            })
+            .addCase(fetchCategoryHierarchy.rejected, (state, action) => {
+                state.error = action.error.message || 'Failed to fetch category hierarchy'
+            })
+
+            // Fetch Brands
+            .addCase(fetchBrands.pending, (state) => {
+                state.error = null
+            })
+            .addCase(fetchBrands.fulfilled, (state, action) => {
+                state.brands = action.payload
+            })
+            .addCase(fetchBrands.rejected, (state, action) => {
+                state.error = action.error.message || 'Failed to fetch brands'
             })
 
     },
